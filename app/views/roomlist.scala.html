@@ -1,0 +1,16 @@
+@(rooms:Seq[Room])
+@rooms.zipWithIndex.map{ case(room,no) =>
+  <tr>
+      <td>@{no+1}</td>
+      <td>@room.title</td>
+      <td>@room.owner.name</td>
+      <td>@room.game_status match {
+          case 1 => {WAIT}
+          case 2 => {PLAYING}
+          case _ => {ERROR}
+      }
+      </td>
+        <td><button type="button" class="btn btn-primary btn-join-room  btn-sm" id="btn-join-room" data-room-title="@room.title" data-room-no="@{no+1}" data-room-seq="@room.seq">Join</button></td>
+  </tr>
+}
+

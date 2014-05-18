@@ -1,0 +1,347 @@
+@(connected: Option[String])(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>FACEBOOK REMOTE VOLLEY BALL</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <!-- Bootstrap -->
+
+
+        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+            <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+            <!-- Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+            <!-- Latest compiled and minified JavaScript -->
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
+
+        <script type="text/javascript" src="//d3lp1msu2r81bx.cloudfront.net/kjs/js/lib/kinetic-v5.1.0.min.js"></script>
+
+    </head>
+    <body>
+        <div id="fb-root"></div>
+        <script>
+            var myInfo;
+            var myProfile_url;
+            var friendList;
+
+            $(document ).ready(function() {
+                $.ajaxSetup({ cache: true });
+                $.getScript('//connect.facebook.net/en_UK/all.js', function(){
+                    FB.init({
+                        appId      : '236220253168811',
+                        cookie     : true,  // enable cookies to allow the server to access
+                        // the session
+                        xfbml      : true,  // parse social plugins on this page
+                        version    : 'v2.0' // use version 2.0
+                    });
+
+                    //$('#loginbutton,#feedbutton').removeAttr('disabled');
+                    FB.getLoginStatus( $.statusChangeCallback);
+                });
+
+            $.statusChangeCallback = function(response){
+                console.log('statusChangeCallback');
+                console.log(response);
+                if (response.status === 'connected') {
+
+                    $.addMe(response);
+                    //drawGame();
+
+                    // 1. Get My Profile
+
+                    // 2. Get Friend List
+                } else if (response.status === 'not_authorized') {
+                    $('#status #msg' ).html('Please log into this app.');
+                } else {
+                    $('#status #msg' ).html('Please log into this app.');
+                }
+            }
+
+            $.checkLoginStatus = function() {
+                FB.getLoginStatus(function(response) {
+                    $.statusChangeCallback(response);
+                });
+            }
+
+            $.addMe = function(e) {
+
+                FB.api('/me', function(response) {
+                $('#display_progress .progress-bar' ).css('width','30%');
+                    $("#login_status_msg" ).html(response.name+"님 환영합니다.");
+                    $("#fbBtn" ).hide();
+                    myInfo = response;
+                $.setUserStatusByToken("1");
+                    FB.api(
+                        'me?fields=picture.width(160).height(160).type(square)',
+                        function(response2) {
+                            console.log(response2);
+                        $('#display_progress .progress-bar' ).css('width','45%');
+                            myProfile_url = response2.picture.data.url;
+                            $.ajax(
+                                jsRoutes.controllers.User.addUser(
+                                    response.name,
+                                    response.email,
+                                    response2.picture.data.url,
+                                    response2.id
+                                )
+                            ).done(function(data){
+                                console.log(data.code);
+                                FB.api(
+                                    "/me/friends",
+                                    function (response) {
+                                        if (response && !response.error) {
+                                        /* handle the result */
+                                        $('#display_progress .progress-bar' ).css('width','60%');
+                                        console.log(response);
+                                        friendList = response.data;
+                                        $.getRooms();
+                                        $.setProfile();
+                                    }
+                                });
+                            } ).fail(function(e){
+                                console.log(e);
+                            })
+                        });
+
+
+
+                });
+            }
+
+            $.getRooms = function() {
+                $.ajax(
+                    jsRoutes.controllers.Room.getRooms()
+                    ).done(function(data){
+                        console.log(data);
+                        $('#tbl_room_list' ).append(data);
+                        $('#display_progress .progress-bar' ).css('width','100%');
+                        $('#display_progress' ).hide();
+                        $('#room_main' ).fadeIn();
+                        $('#btn-join-room' ).click(function(e){
+                            //$.setUserProfile(myInfo.id,'game_my_profile');
+                            $.setPlayersProfile($(this ).data('roomSeq'));
+                            $.setUserStatusByToken("2");
+                            $.setUserCurrentRoom($(this ).data('roomSeq'));
+                            var title = "["+$(this ).data('roomSeq')+"] "+$(this ).data('roomTitle')
+                            $('#room_title' ).html(title);
+                            $('#display_room' ).fadeOut(500,function() {
+
+                                $('#display_game' ).fadeIn();
+                            });
+
+                        $('#btn-exit-room' ).click(function(){
+                            if(confirm("Do you really want to exit game?")){
+                                $('#display_game' ).fadeOut(500,function() {
+                                    $('#display_room' ).fadeIn();
+                                });
+                            }
+
+                        });
+
+
+                        });
+
+                    }).fail(function(e){
+                        console.log(e);
+                });
+
+            }
+
+            $.setUserStatusByToken = function(status){
+                $.ajax(
+                    jsRoutes.controllers.User.setUserStatusByToken(status,myInfo.id)
+                ).done(function(data){
+                    console.log(data);
+                }).fail(function(e){
+                    console.log(e);
+                });
+            }
+
+            $.setUserCurrentRoom = function(seq){
+                $.ajax(
+                    jsRoutes.controllers.User.setUserCurrentRoom(seq,myInfo.id)
+                ).done(function(data){
+                    console.log(data);
+                }).fail(function(e){
+                    console.log(e);
+                });
+            }
+            $.setPlayersProfile = function(seq){
+                $.ajax(
+                    jsRoutes.controllers.Room.getPlayersProfile(seq,myInfo.id)
+                ).done(function(data){
+                    console.log(data);
+                    $("#game_player_profile").append(data);
+                }).fail(function(e){
+                    console.log(e);
+                });
+            }
+
+            $.setProfile = function() {
+                $.ajax(
+                    jsRoutes.controllers.User.getUserProfile(myInfo.id)
+                ).done(function(data){
+                    console.log(data);
+                $('#display_progress .progress-bar' ).css('width','70%');
+                    $('#my_profile' ).append(data);
+                    $('#profile_main' ).fadeIn();
+                }).fail(function(e){
+                    console.log(e);
+                });
+
+            //$('#my_profile' ).append('<div class="span4"><img src="'+myProfile_url+'" /></div><div class="span8"><h5>'+myInfo.name+'</h5>Win : '+myInfo.win+'</div>');
+
+            }
+
+
+
+
+
+            });
+        </script>
+
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="@routes.Application.index()">FACEBOOK REMOTE VOLLEY BALL</a>
+                </div>
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav navbar-right">
+                        @connected.map { username =>
+                            <li>
+                                Logged in as @username —
+                                <a href="@routes.Application.index()">Disconnect</a>
+                            </li>
+                        }.getOrElse {
+                            <li>
+                                <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" onlogin="checkLoginState();" id="fbBtn">
+                                </fb:login-button>
+                                <span class="label label-success" id="login_status_msg"></span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="row" id="display_progress">
+                <div class="progress progress-striped active">
+                    <div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 10%">
+                        <span class="sr-only">Loading..</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="display_room">
+                <div class="col-md-8">
+
+                    <div id="room_main" style="display: none;" class=" panel panel-primary">
+                        <div class="panel-heading">
+                            <h3>Room List <button type="button" class="btn btn-danger btn-join btn-sm"  data-toggle="modal" data-target="#modal_makeroom">New Room</button></h3>
+                        </div>
+                        <div class="panel-body">
+                            <table id="tbl_room"  class="table table-bordered">
+                                <thead>
+                                    <th>No</th>
+                                    <th>Title</th>
+                                    <th>Owner</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                </thead>
+                                <tbody id="tbl_room_list">
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel panel-danger"  id="profile_main" style="display: none;">
+                        <div class="panel-heading">
+                            <h3>My Profile</h3>
+                        </div>
+                        <div class="panel-body" id="my_profile">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row" id="display_game" style="display: none;">
+                <div class="col-md-9">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3><span id="room_title"></span> <button type="button" class="btn btn-danger btn-exit-room btn-sm" id="btn-exit-room">Exit</button></h3>
+                        </div>
+                        <div class="panel-body">
+                            <div id="container"></div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-3">
+                    <div class="panel panel-danger"  id="profile_main">
+                        <div class="panel-heading">
+                            <h3>Players</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div  id="game_player_profile"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <p>
+                    Copyright <a href="http://www.izectlab.com">www.izectlab.com</a> All right reserved <br/>
+                    Developed by Team NGX in CAUCSE
+                </p>
+            </footer>
+
+        </div>
+
+            <!-- Modal -->
+        <div class="modal fade" id="modal_makeroom" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Create New Room</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">Title</span>
+                                <input type="text" class="form-control" placeholder="input room's title">
+                        </div>
+                        <br />
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">Time</span>
+                            <input type="text" class="form-control" placeholder="input just number like 3 or 5..">
+                            <span class="input-group-addon">min</span>
+                        </div>
+                        <br />
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">
+                                <input type="checkbox">
+                            </span>
+                            <input type="text" class="form-control" placeholder="is privacy?">
+                        </div>
+                        <br />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary">New</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="@routes.Assets.at("js/game.js")" type="text/javascript"></script>
+    </body>
+</html>

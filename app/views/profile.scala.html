@@ -1,0 +1,11 @@
+@(user:User)
+<div class="col-md-12 text-center">
+    <img src="@user.pic_url" />
+</div>
+<div class="col-md-12 text-center">
+    <h5>@user.name</h5>
+    <strong>Win</strong> : @user.win
+    <strong>Lose</strong> : @user.lose <br />
+    <button type="button" class="btn btn-warning btn-join" data-user-seq="@user.seq">Setting</button>
+</div>
+
