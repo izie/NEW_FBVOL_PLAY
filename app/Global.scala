@@ -9,7 +9,7 @@ import play.api.mvc._
 object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
-    Logger.info("Application has started")
+    //Logger.info("Application has started")
 
 
   }
