@@ -57,9 +57,11 @@
 
                     // 2. Get Friend List
                 } else if (response.status === 'not_authorized') {
-                    $('#status #msg' ).html('Please log into this app.');
+                    $('.div-msg #msg' ).html('Please login using Facebook login button.');
+                    $('.div-msg' ).fadeIn();
                 } else {
-                    $('#status #msg' ).html('Please log into this app.');
+                    $('.div-msg #msg' ).html('Please login using Facebook login button.');
+                    $('.div-msg' ).fadeIn();
                 }
             }
 
@@ -221,8 +223,8 @@
                                 <a href="@routes.Application.index()">Disconnect</a>
                             </li>
                         }.getOrElse {
-                            <li>
-                                <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" onlogin="checkLoginState();" id="fbBtn">
+                            <li class="text-center">
+                                <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginState();" id="fbBtn">
                                 </fb:login-button>
                                 <span class="label label-success" id="login_status_msg"></span>
                             </li>
@@ -237,6 +239,10 @@
                     <div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 10%">
                         <span class="sr-only">Loading..</span>
                     </div>
+                </div>
+                <div class="alert alert-danger fade in div-msg" style="display:none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <p id="msg"></p>
                 </div>
             </div>
             <div class="row" id="display_room">
