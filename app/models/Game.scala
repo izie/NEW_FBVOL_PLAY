@@ -8,6 +8,7 @@ import play.api.Play.current
 case class Game(seq:Pk[Long],  seq_room:Int,  turn:Int, score_owner:Int, score_enemy:Int)
 
 object Games{
+
   val simple = {
     get[Pk[Long]]("gameinfo.seq") ~
     get[Int]("gameinfo.seq_room") ~
