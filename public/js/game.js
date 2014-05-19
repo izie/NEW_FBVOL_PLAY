@@ -4,6 +4,10 @@ var gWidth = 800;
 var gHeight = 600;
 
 var userData = {};
+var anim = null;
+var anim_countdown = null;
+var user1_Shoot = null;
+var user2_Shoot = null;
 
 var kimages = {};
 
@@ -18,6 +22,7 @@ var bgimage = null;
 var stage = null;
 
 var layer = null;
+var layer_countdown = null;
 // Ball
 var ball = null;
 
@@ -33,7 +38,12 @@ var score_A = 0;
 var scoreBoard_2 = null;
 var score_B = 0;
 
-var ballMode = 'move';
+
+//CountDown
+var countTime = 3; // countdown 할 수
+var countDownField = null;
+
+var ballMode = 'ready';
 
 // Gravity
 var grav_x = 0;
@@ -52,6 +62,7 @@ var userSpeed_y = {};
 
 // Character is shooting
 var userShoot = {};
+var maintainTime = {}; // shooting maintain time
 
 var debugTxt = null;
 
@@ -143,6 +154,17 @@ $.initRes = function() {
         fill: 'white'
     });
 
+    //CountDownField
+    countDownField = new Text({
+        x : 400,
+        y : 200,
+        fontSize : 50,
+        fontFamily : 'Calibri',
+        fontStyle : 'bold',
+        text : '',
+        fill : 'red'
+    }) ;
+
     // Debug Text
     debugTxt = new Kinetic.Text({
         x: 0,
@@ -156,17 +178,17 @@ $.initRes = function() {
     bgimage = new Image();
 
     var imageObj = new Image();
-    imageObj.onload = function() {
-        var yoda = new Kinetic.Image({
-            x: 0,
-            y: 0,
-            image: imageObj,
-            width: 800,
-            height: 600
-        });
+        imageObj.onload = function() {
+            var background = new Kinetic.Image({
+                x: 0,
+                y: 0,
+                image: imageObj,
+                width: 800,
+                height: 600
+            });
 
         // add the shape to the layer
-        layer.add(yoda);
+        layer.add(background);
         layer.add(debugTxt);
 
 
@@ -176,6 +198,7 @@ $.initRes = function() {
         layer.add(scoreBoard_1);
         layer.add(scoreBoard_2);
         layer.add(ground);
+        layer.add(countDownField);
 
         stage.add(layer);
     };
@@ -300,6 +323,7 @@ $.calculateScore = function(){
 
 
 }
+
 $.jumpAction = function(i){
     if(userSpeed_y[i] == 0 ){
         userSpeed_y [i] = -40;
@@ -308,23 +332,76 @@ $.jumpAction = function(i){
 
 $.startShootingAction = function(i){
     userShoot[i] = 1;
-
 }
+
 $.endShootingAction = function(i){
     userShoot[i] = 0;
 }
+$.shooting = function(i){
+    if(i == 0 )
+        user1_Shoot.start();
+    else
+        user2_Shoot.start();
+}
 
-$.initAnim = function() {
+$.initAnim = function(){
     var firstTime = 0;
+    var firstTime2 = 0;
+
+    user1_Shoot = new Kinetic.Animation(function(frame){
+        $.startShootingAction(0);
+
+        if( (frame.time / 1000) - 0 >= 1){
+            $.endShootingAction(0);
+            this.stop();
+        }
+
+    });
+    user2_Shoot = new Kinetic.Animation(function(frame){
+        $.startShootingAction(1);
+
+        if( (frame.time / 1000) - 0 >= 1){
+            $.endShootingAction(1);
+            this.stop();
+        }
+
+    });
+
+
+    anim_countdown = new Kinetic.Animation(function(frame){
+
+        if(countTime >= 0){
+            if(countTime == 0)
+                countDownField.setText('Go!');
+
+            countDownField.setText(countTime);
+
+            if( (frame.time / 1000) - firstTime2 >= 1){
+                firstTime2 = frame.time / 1000;
+                countTime --;
+            }
+        }
+        else{
+            $.gameStart();
+            countDownField.setText('');
+            firstTime2 = 0;
+            countTime = 3;
+            this.stop();
+        }
+    });
 
     anim = new Kinetic.Animation(function(frame){
         //console.log((frame.time / 1000) - firstTime);
+
+        firstTime2 = 0;
+
         if((frame.time / 35) - firstTime >= 1){
             //console.log("check");
             firstTime = frame.time / 35;
 
         }
-        if (ballMode == 'move'){                        // 상황별로 나누기, 지금은 그냥 공움직이게 되어잇음.
+
+        if (ballMode == 'move'){     // 상황별로 나누기, 지금은 그냥 공움직이게 되어잇음.
             $.callAjax();
             var tmod = (frame.timeDiff) * 0.005;
 
@@ -355,6 +432,11 @@ $.initAnim = function() {
         }
         else if (ballMode == 'pause'){
             // 시간 멈추기.
+            $.gamePause();
+        }
+        else if(ballMode == 'resume'){
+            $.gameStart();
+            ballMode = 'move';
         }
         else if( ballMode =='ready' ){
             kimages[0].setX(110);
@@ -368,6 +450,10 @@ $.initAnim = function() {
 
             speed_x = 0;
             speed_y = 0;
+        }
+        else{             //ballMode == stop 이면
+            ballMode = 'ready';
+            this.stop();
         }
 
     },layer);
@@ -421,11 +507,12 @@ $.isCollisionToNet = function(x1,y1){
     }else{}
 
 }
-
+$.countDown = function(){
+    anim_countdown.start();
+}
 $.gameStart = function() {
     anim.start();
 }
-
 $.gamePause = function() {
     anim.pause();
 }

@@ -4,7 +4,6 @@ import anorm.SqlParser._
 import anorm._
 import play.api.db.DB
 import play.api.Play.current
-import javafx.beans.value.WritableListValue
 import play.api.libs.json._
 
 
