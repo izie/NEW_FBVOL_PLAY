@@ -14,22 +14,22 @@ import akka.pattern.ask
 
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits._
-
+/*
 object Robot {
-  
+
   def apply(chatRoom: ActorRef) {
-    
+
     // Create an Iteratee that logs all messages to the console.
     val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))
-    
+
     implicit val timeout = Timeout(1 second)
     // Make the robot join the room
     chatRoom ? (Join("Robot")) map {
-      case Connected(robotChannel) => 
+      case Connected(robotChannel) =>
         // Apply this Enumerator on the logger.
         robotChannel |>> loggerIteratee
     }
-    
+
     // Make the robot talk every 30 seconds
     Akka.system.scheduler.schedule(
       30 seconds,
@@ -38,9 +38,9 @@ object Robot {
       Talk("Robot", "I'm still alive")
     )
   }
-  
-}
 
+}
+*/
 object ChatRoom {
   
   implicit val timeout = Timeout(1 second)
@@ -49,22 +49,22 @@ object ChatRoom {
     val roomActor = Akka.system.actorOf(Props[ChatRoom])
     
     // Create a bot user (just for fun)
-    Robot(roomActor)
+    //Robot(roomActor)
     
     roomActor
   }
 
-  def join(username:String):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+  def join(token:String):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
 
-    (default ? Join(username)).map {
+    (default ? Join(token)).map {
       
       case Connected(enumerator) => 
       
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
-          default ! Talk(username, (event \ "text").as[String])
+          default ! Talk(token, (event \ "text").as[String])
         }.map { _ =>
-          default ! Quit(username)
+          default ! Quit(token)
         }
 
         (iteratee,enumerator)
@@ -94,27 +94,27 @@ class ChatRoom extends Actor {
 
   def receive = {
     
-    case Join(username) => {
-      if(members.contains(username)) {
+    case Join(token) => {
+      if(members.contains(token)) {
         sender ! CannotConnect("This username is already used")
       } else {
-        members = members + username
+        members = members + token
         sender ! Connected(chatEnumerator)
-        self ! NotifyJoin(username)
+        self ! NotifyJoin(token)
       }
     }
 
-    case NotifyJoin(username) => {
-      notifyAll("join", username, "has entered the room")
+    case NotifyJoin(token) => {
+      notifyAll("join", token, "has entered the room")
     }
     
-    case Talk(username, text) => {
-      notifyAll("talk", username, text)
+    case Talk(token, text) => {
+      notifyAll("talk", token, text)
     }
     
-    case Quit(username) => {
-      members = members - username
-      notifyAll("quit", username, "has left the room")
+    case Quit(token) => {
+      members = members - token
+      notifyAll("quit", token, "has left the room")
     }
     
   }
@@ -135,7 +135,7 @@ class ChatRoom extends Actor {
   
 }
 
-case class Join(username: String)
+case class Join(token:String)
 case class Quit(username: String)
 case class Talk(username: String, text: String)
 case class NotifyJoin(username: String)

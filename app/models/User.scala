@@ -64,7 +64,7 @@ object Users{
     }
 
   // User process section
-  def setUserCurrentRoom(token:String, seq_room:Int) = DB.withConnection {
+  def setUserCurrentRoom(token:String, seq_room:Long) = DB.withConnection {
 
     implicit connection =>
       println("=== Users - setUserStatusByToken()")

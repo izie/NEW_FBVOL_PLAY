@@ -1,18 +1,35 @@
-@(user: User)(implicit r: RequestHeader)
-
+@(user: User, room:Room)(implicit r: RequestHeader)
     var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-    var chatSocket = new WS("@routes.Application.chat(user.token).webSocketURL()")
+    var chatSocket = new WS("@routes.Application.game(user.token,room.seq.getOrElse(0)).webSocketURL()")
+
 
     $.sendMessage = function() {
         chatSocket.send(JSON.stringify(
-            {text: $("#talk").val()}
+            {text: "haha"}
         ))
-        $("#talk").val('')
+        //$("#talk").val('')
     }
 
     $.receiveEvent = function(event) {
         var data = JSON.parse(event.data)
-        console.log(data)
+        console.log(data);
+
+        if(data.action == "join"){
+            $.addUser(data);
+            @if(room.owner.token != user.token){
+                $.addOwner("@room.owner.token","@room.owner.name","@room.owner.pic_url");
+            }
+        }
+
+        if(data.action == "move"){
+            @if(room.owner.token != user.token){
+                $.setUserXY(1,data.token, data.x, data.y);
+            }else{
+                $.setUserXY(0,data.token, data.x, data.y);
+            }
+        }
+
+        /*
         // Handle errors
         if(data.error) {
             chatSocket.close()
@@ -38,6 +55,11 @@
             li.textContent = this;
             $("#members").append(li);
         })
+        */
     }
 
-    chatSocket.onmessage = receiveEvent;
+    chatSocket.onmessage = $.receiveEvent
+
+    $("#btn-exit-room").click(function() {
+        $.sendMessage();
+    });

@@ -1,4 +1,4 @@
-@(connected: Option[String])(content: Html)
+@(user: Option[User],room:Option[Room])(content: Html)
 
 <!DOCTYPE html>
 
@@ -29,6 +29,8 @@
             var myInfo;
             var myProfile_url;
             var friendList;
+
+            @if(user == null){
 
             $(document ).ready(function() {
                 $.ajaxSetup({ cache: true });
@@ -94,18 +96,10 @@
                                 )
                             ).done(function(data){
                                 console.log(data.code);
-                                FB.api(
-                                    "/me/friends",
-                                    function (response) {
-                                        if (response && !response.error) {
-                                        /* handle the result */
-                                        $('#display_progress .progress-bar' ).css('width','60%');
-                                        console.log(response);
-                                        friendList = response.data;
-                                        $.getRooms();
-                                        $.setProfile();
-                                    }
-                                });
+                            $('#display_progress .progress-bar' ).css('width','100%');
+                            $('#form1 input[id=token]' ).val(response.id);
+                            $('#form1' ).submit();
+
                             } ).fail(function(e){
                                 console.log(e);
                             })
@@ -132,13 +126,19 @@
                             $.setUserCurrentRoom($(this ).data('roomSeq'));
                             var title = "["+$(this ).data('roomSeq')+"] "+$(this ).data('roomTitle')
                             $('#room_title' ).html(title);
+
+
                             $('#display_room' ).fadeOut(500,function() {
 
-                                $('#display_game' ).fadeIn();
+                                $('#display_game' ).fadeIn(500, function() {
+
+                                });
                             });
 
                         $('#btn-exit-room' ).click(function(){
                             if(confirm("Do you really want to exit game?")){
+                                $.setUserStatusByToken("1");
+                                $.setUserCurrentRoom("0");
                                 $('#display_game' ).fadeOut(500,function() {
                                     $('#display_room' ).fadeIn();
                                 });
@@ -200,12 +200,15 @@
             //$('#my_profile' ).append('<div class="span4"><img src="'+myProfile_url+'" /></div><div class="span8"><h5>'+myInfo.name+'</h5>Win : '+myInfo.win+'</div>');
 
             }
-
-
-
-
-
             });
+
+            }
+
+            @if(user != null && room == null){
+
+            }
+
+
         </script>
 
         <nav class="navbar navbar-default" role="navigation">
@@ -217,23 +220,23 @@
                     <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav navbar-right">
-                        @connected.map { username =>
-                            <li>
-                                Logged in as @username —
-                                <a href="@routes.Application.index()">Disconnect</a>
-                            </li>
-                        }.getOrElse {
+
                             <li class="text-center">
                                 <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginState();" id="fbBtn">
                                 </fb:login-button>
                                 <span class="label label-success" id="login_status_msg"></span>
+                                <form action="@routes.Application.chatRoom(None)" class="pull-right" id="form1" style="display: none;">
+                                    <input id="token" name="token" class="input-small" type="text" placeholder="Username">
+                                    <button class="btn" type="submit">Sign in</button>
+                                </form>
                             </li>
-                        }
+
                     </ul>
                 </div>
             </div>
         </nav>
         <div class="container">
+        @if(room == null && user == null){
             <div class="row" id="display_progress">
                 <div class="progress progress-striped active">
                     <div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 10%">
@@ -245,63 +248,9 @@
                     <p id="msg"></p>
                 </div>
             </div>
+        }
             <div class="row" id="display_room">
-                <div class="col-md-8">
-
-                    <div id="room_main" style="display: none;" class=" panel panel-primary">
-                        <div class="panel-heading">
-                            <h3>Room List <button type="button" class="btn btn-danger btn-join btn-sm"  data-toggle="modal" data-target="#modal_makeroom">New Room</button></h3>
-                        </div>
-                        <div class="panel-body">
-                            <table id="tbl_room"  class="table table-bordered">
-                                <thead>
-                                    <th>No</th>
-                                    <th>Title</th>
-                                    <th>Owner</th>
-                                    <th>User</th>
-                                    <th>Action</th>
-                                </thead>
-                                <tbody id="tbl_room_list">
-
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="panel panel-danger"  id="profile_main" style="display: none;">
-                        <div class="panel-heading">
-                            <h3>My Profile</h3>
-                        </div>
-                        <div class="panel-body" id="my_profile">
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="row" id="display_game" style="display: none;">
-                <div class="col-md-9">
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <h3><span id="room_title"></span> <button type="button" class="btn btn-danger btn-exit-room btn-sm" id="btn-exit-room">Exit</button></h3>
-                        </div>
-                        <div class="panel-body">
-                            <div id="container"></div>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-3">
-                    <div class="panel panel-danger"  id="profile_main">
-                        <div class="panel-heading">
-                            <h3>Players</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div  id="game_player_profile"></div>
-                        </div>
-                    </div>
-                </div>
+                @content
             </div>
 
             <footer>
@@ -313,41 +262,6 @@
 
         </div>
 
-            <!-- Modal -->
-        <div class="modal fade" id="modal_makeroom" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Create New Room</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-addon">Title</span>
-                                <input type="text" class="form-control" placeholder="input room's title">
-                        </div>
-                        <br />
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-addon">Time</span>
-                            <input type="text" class="form-control" placeholder="input just number like 3 or 5..">
-                            <span class="input-group-addon">min</span>
-                        </div>
-                        <br />
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-addon">
-                                <input type="checkbox">
-                            </span>
-                            <input type="text" class="form-control" placeholder="is privacy?">
-                        </div>
-                        <br />
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary">New</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script src="@routes.Assets.at("js/game.js")" type="text/javascript"></script>
+
     </body>
 </html>

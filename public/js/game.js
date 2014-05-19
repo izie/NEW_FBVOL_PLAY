@@ -10,6 +10,7 @@ var user1_Shoot = null;
 var user2_Shoot = null;
 
 var kimages = {};
+var userInfo = {};
 
 var profile_pic = {
     dkjo91: 'https://fbcdn-profile-a.akamaihd.net/hprofile-ak-frc3/t1.0-1/c35.35.443.443/s160x160/484064_384552564940063_232438685_n.jpg',
@@ -82,7 +83,7 @@ $.Init = function() {
     $.initVar();
     $.initAnim();
     //$('#display_progress .progress-bar' ).css('width','90%');
-    //$.gameStart();
+    $.gameStart();
 
 }
 /*$('#container').keydown(function (event){
@@ -216,8 +217,100 @@ $.setUserImage = function(seq, pic_url) {
 
 }
 
+$.setUserXY = function(user_type, id,x,y) {
+
+    kimages[user_type].setX(x);
+    kimages[user_type].setY(y);
+
+    layer.add(kimages[user_type]);
+
+    stage.add(layer);
+}
+
+var images = {};
+
+$.addOwner = function(id,name,pic_url) {
+    var user_type = 0;
+    var user_x,user_y=500;
+
+    userInfo[user_type] = {};
+
+    //110 500 610 500
+    if(user_type == 0){
+        user_x = 110;
+
+    }else if(user_type == 1){
+        user_x = 610;
+    }
+    userInfo[user_type].id = id;
+    userInfo[user_type].name = name;
+    images[user_type] = new Image();
+
+    images[user_type].onload = function() {
+        //alert(images[numUser].src);
+        kimages[user_type] = new Kinetic.Image({
+            image: images[user_type],
+            x: user_x,
+            y: user_y,
+            width:80,
+            height:80,
+            draggable: true
+        });
+
+        kimages[user_type].setOffset(40, 40);
+
+        //alert(data[numUser].id+"/"+data[numUser].x+"/"+data[numUser].y);
+        layer.add(kimages[user_type]);
+
+        stage.add(layer);
+    };
+
+    images[user_type].src = pic_url;
+}
+
+$.addUser = function(user) {
+    var user_type = user.user_type;
+    var user_x,user_y=500;
+
+        //110 500 610 500
+    if(userInfo[user_type] == null) {
+        if(user_type == 0){
+            user_x = 110;
+
+        }else if(user_type == 1){
+            user_x = 610;
+        }
+        userInfo[user_type] = user;
+        images[user_type] = new Image();
+
+        images[user_type].onload = function() {
+            //alert(images[numUser].src);
+            kimages[user_type] = new Kinetic.Image({
+                image: images[user_type],
+                x: user_x,
+                y: user_y,
+                width:80,
+                height:80,
+                draggable: true
+            });
+
+            kimages[user_type].setOffset(40, 40);
+
+            //alert(data[numUser].id+"/"+data[numUser].x+"/"+data[numUser].y);
+            layer.add(kimages[user_type]);
+
+            stage.add(layer);
+        };
+
+        images[user_type].src = user.pic_url;
+    }
+
+
+
+}
+
 $.callAjax = function() {
-    var requestUrl = 'http://fbvol.matthewlab.com/User/getUser';
+    var requestUrl = 'http://localhost.com:9000/User/getUser';
 
     $.ajax({
         url:requestUrl,

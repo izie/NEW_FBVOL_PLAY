@@ -47,7 +47,7 @@ object Rooms{
       ).as(Rooms.withUser *)
   }
 
-  def getRoom(seq:Int):Room = DB.withConnection {
+  def getRoom(seq:Long):Room = DB.withConnection {
     println("=== Rooms - getRoom()")
     implicit connection =>
       SQL(
