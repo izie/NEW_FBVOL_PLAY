@@ -80,7 +80,7 @@ object Users{
     // current location : 0 offline 1 room 2 into the room(player) 3 into the room(watcher)
   }
 
-    def getUsers:List[User] = DB.withConnection {
+    def getUsers:Seq[User] = DB.withConnection {
 
       implicit connection =>
         println("=== Users - getUsers()")
@@ -164,7 +164,7 @@ object Users{
   def setUserPosition(x:Int, y:Int, token:String) = DB.withConnection {
 
     implicit connection =>
-      println("=== Users - setUserPosition()")
+      println("=== Users - setUserPosition("+x+","+y+")")
       SQL(
         """
       update userinfo set location_x = {x}, location_y = {y} where token = {token}
@@ -176,4 +176,6 @@ object Users{
         ).executeUpdate()
     // current location : 0 offline 1 room 2 into the room(player) 3 into the room(watcher)
   }
+
+
 }

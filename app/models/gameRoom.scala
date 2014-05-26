@@ -54,17 +54,17 @@ object GameRoom {
     roomActor
   }
 
-  def join(token:String, seq_room:Long):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+  def join(user:User, seq_room:Long):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
 
-    (default ? JoinGame(token,seq_room)).map {
+    (default ? JoinGame(user,seq_room)).map {
 
       case Connected(enumerator) =>
 
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
-          default ! TalkGame(token, (event \ "text").as[String])
+          default ! TalkGame(user, (event \ "text").as[String])
         }.map { _ =>
-          default ! QuitGame(token)
+          default ! QuitGame(user)
         }
 
         (iteratee,enumerator)
@@ -85,17 +85,48 @@ object GameRoom {
 
   }
 
-  def move(token:String, x:Int, y:Int):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+  def move(user:User, x:Int, y:Int):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
 
-    (default ? MoveGame(token,x,y)).map {
+    (default ? MoveGame(user,x,y)).map {
 
       case Connected(enumerator) =>
 
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
-          default ! TalkGame(token, (event \ "text").as[String])
+          default ! TalkGame(user, (event \ "text").as[String])
         }.map { _ =>
-          default ! QuitGame(token)
+          default ! QuitGame(user)
+        }
+
+        (iteratee,enumerator)
+
+      case CannotConnect(error) =>
+
+        // Connection error
+
+        // A finished Iteratee sending EOF
+        val iteratee = Done[JsValue,Unit]((),Input.EOF)
+
+        // Send an error and close the socket
+        val enumerator =  Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
+
+        (iteratee,enumerator)
+
+    }
+
+  }
+
+  def jump(user:User,seq_room:Long):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+
+    (default ? JumpGame(user,seq_room)).map {
+
+      case Connected(enumerator) =>
+
+        // Create an Iteratee to consume the feed
+        val iteratee = Iteratee.foreach[JsValue] { event =>
+          default ! TalkGame(user, (event \ "text").as[String])
+        }.map { _ =>
+          default ! QuitGame(user)
         }
 
         (iteratee,enumerator)
@@ -120,47 +151,50 @@ object GameRoom {
 
 class GameRoom extends Actor {
 
-  var members = Set.empty[String]
+  var members = Set.empty[User]
   val (gameEnumerator, gameChannel) = Concurrent.broadcast[JsValue]
 
   def receive = {
 
-    case MoveGame(token,x,y) => {
-      Users.setUserPosition(x,y,token)
-      notifyAll_Move("move", token, "has entered the room", x,y)
+    case MoveGame(user,x,y) => {
+      //Users.setUserPosition(x,y,user.token)
+      notifyAll_Move("move", user, "has entered the room", x,y)
     }
+    case JumpGame(user,seq_room) => {
+      //Users.setUserPosition(x,y,user.token)
+      notifyAll("jump", user, "has entered the room",seq_room)
+    }
+    case JoinGame(user,seq_room) => {
 
-    case JoinGame(token,seq_room) => {
-
-      if(members.contains(token)) {
+      if(members.contains(user)) {
         sender ! CannotConnect("This username is already used")
       } else {
-        members = members + token
+        members = members + user
         sender ! Connected(gameEnumerator)
-        self ! NotifyJoinGame(token,seq_room)
+        self ! NotifyJoinGame(user,seq_room)
       }
     }
 
-    case NotifyJoinGame(token,seq_room) => {
-      Users.setUserCurrentRoom(token,seq_room)
-      notifyAll("join", token, "has entered the room", seq_room)
+    case NotifyJoinGame(user,seq_room) => {
+      Users.setUserCurrentRoom(user.token,seq_room)
+      notifyAll("join", user, "has entered the room", seq_room)
     }
 
     case TalkGame(token, text) => {
       notifyAll("talk", token, text)
     }
 
-    case QuitGame(token) => {
-      members = members - token
-      notifyAll("quit", token, "has left the room")
+    case QuitGame(user) => {
+      members = members - user
+      notifyAll("quit", user, "has left the room")
     }
 
   }
 
-  def notifyAll(action:String, token:String, msg:String, seq_room:Long=0) {
-    val user:User = Users.getUserByToken(token)
+  def notifyAll(action:String, user:User, msg:String, seq_room:Long=0) {
+    //val user:User = Users.getUserByToken(token)
     val room:Room = Rooms.getRoom(seq_room)
-
+    println(user.token + "//" + room.owner.token)
     var user_type:Int = 3
     if(room.owner.token == user.token)  user_type = 0
     else                                user_type = 1
@@ -179,17 +213,14 @@ class GameRoom extends Actor {
         "total" -> JsNumber(user.total),
         "x" -> JsNumber(user.location_x),
         "y" -> JsNumber(user.location_y),
-        "user_type" -> JsNumber(user_type),
-        "members" -> JsArray(
-          members.toList.map(JsString)
-        )
+        "user_type" -> JsNumber(user_type)
       )
     )
     gameChannel.push(msg2)
   }
 
-  def notifyAll_Move(action:String, token:String, msg:String, x:Int, y:Int) {
-    val user:User = Users.getUserByToken(token)
+  def notifyAll_Move(action:String, user:User, msg:String, x:Int, y:Int) {
+    //val user:User = Users.getUserByToken(token)
 
 
     val msg2 = JsObject(
@@ -204,12 +235,9 @@ class GameRoom extends Actor {
         "win" -> JsNumber(user.win),
         "lose" -> JsNumber(user.lose),
         "total" -> JsNumber(user.total),
-        "x" -> JsNumber(user.location_x),
-        "y" -> JsNumber(user.location_y),
-        "current_room_seq" -> JsNumber(user.seq_current_room),
-        "members" -> JsArray(
-          members.toList.map(JsString)
-        )
+        "x" -> JsNumber(x),
+        "y" -> JsNumber(y),
+        "current_room_seq" -> JsNumber(user.seq_current_room)
       )
     )
     gameChannel.push(msg2)
@@ -217,11 +245,12 @@ class GameRoom extends Actor {
 
 }
 
-case class MoveGame(token:String,x:Int,y:Int)
-case class JoinGame(token:String,seq_room:Long)
-case class QuitGame(username: String)
-case class TalkGame(username: String, text: String)
-case class NotifyJoinGame(token: String, seq_room:Long)
+case class JumpGame(user:User,seq_room:Long)
+case class MoveGame(user:User,x:Int,y:Int)
+case class JoinGame(user:User,seq_room:Long)
+case class QuitGame(user: User)
+case class TalkGame(user: User, text: String)
+case class NotifyJoinGame(user: User, seq_room:Long)
 
 //case class Connected(enumerator:Enumerator[JsValue])
 //case class CannotConnect(msg: String)

@@ -1,42 +1,56 @@
 @(user1:User, user2:User=null, token:String)
 <div class="col-md-12 text-center">
 <div id="game_my_profile">
-    <div class="col-md-12 text-center">
-        <h4>Player 1</h4>
-        <img src="@user1.pic_url" />
-    </div>
-    <div class="col-md-12 text-center">
-        <h5>@user1.name</h5>
-        <strong>Win</strong> : @user1.win
-        <strong>Lose</strong> : @user1.lose <br />
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#home" data-toggle="tab">Player 1</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane active" id="owner_home">
+            <div class="col-md-4 text-center">
+                <img src="@user1.pic_url" width="50" height="50" />
+            </div>
+            <div class="col-md-8 text-center">
+                <h5>@user1.name</h5>
+                <strong>Win</strong> : @user1.win
+                <strong>Lose</strong> : @user1.lose <br />
+            </div>
+        </div>
     </div>
 </div>
 
 @if(user2 != null) {
     <div id="game_enemy_profile">
-        <div class="col-md-12 text-center">
-            <h4>Player 2</h4>
-            <img src="@user2.pic_url" />
-        </div>
-        <div class="col-md-12 text-center">
-            <h5>@user2.name</h5>
-            <strong>Win</strong> : @user2.win
-            <strong>Lose</strong> : @user2.lose <br />
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#home" data-toggle="tab">Player 2</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="home">
+                <div class="col-md-4 text-center">
+                    <img src="@user2.pic_url" width="50" height="50" />
+                </div>
+                <div class="col-md-8 text-center">
+                    <h5>@user2.name</h5>
+                    <strong>Win</strong> : @user2.win
+                    <strong>Lose</strong> : @user2.lose <br />
+                </div>
+            </div>
         </div>
     </div>
 }else{
     <div id="game_enemy_profile">
-        <div class="col-md-12 text-center">
-            <h4>No Player</h4>
-        </div>
-        <div class="col-md-12 text-center">
-
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#home" data-toggle="tab">Player 2</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="enemy_home">
+                No Player
+            </div>
         </div>
     </div>
 }
 </div>
 <div class="col-md-12 text-center">
-<button type="button" class="btn btn-default btn-lg">
+<button type="button" class="btn btn-info btn-lg btn-play">
     @if(user1.token == token){
         Play
     }else{

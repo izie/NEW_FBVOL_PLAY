@@ -67,11 +67,12 @@
                 }
             }
 
-            $.checkLoginStatus = function() {
+            function checkLoginStatus() {
                 FB.getLoginStatus(function(response) {
                     $.statusChangeCallback(response);
                 });
             }
+
 
             $.addMe = function(e) {
 
@@ -222,7 +223,7 @@
                     <ul class="nav navbar-nav navbar-right">
 
                             <li class="text-center">
-                                <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginState();" id="fbBtn">
+                                <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginStatus();" id="fbBtn">
                                 </fb:login-button>
                                 <span class="label label-success" id="login_status_msg"></span>
                                 <form action="@routes.Application.chatRoom(None)" class="pull-right" id="form1" style="display: none;">

@@ -1,0 +1,20 @@
+@(user:User)
+<div class="col-md-3">
+    <div class="col-md-12 text-center">
+        <img src="@user.pic_url" width="50" height="50" />
+    </div>
+    <div class="col-md-12 text-center">
+        <h5>@user.name</h5>
+        @if(user.current_location == 0){
+            <button type="button" class="btn btn-block btn-xs disabled" data-user-seq="@user.seq">Offline</button>
+        }
+        @if(user.current_location == 1){
+            <button type="button" class="btn btn-warning btn-join btn-xs" data-user-seq="@user.seq">Invite</button>
+        }
+        @if(user.current_location > 1){
+            <button type="button" class="btn btn-block btn-xs disableds" data-user-seq="@user.seq">Playing</button>
+        }
+    </div>
+</div>
+
+

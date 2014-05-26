@@ -6,13 +6,20 @@
 GET         /                                      controllers.Application.index
 POST        /                                      controllers.Application.index
 
+GET         /Controller                            controllers.Application.controller
+POST        /Controller                            controllers.Application.controller
+
+
 #User
 POST        /User/addUser                          controllers.User.addUser(name:String, email:String, pic_url:String, token:String)
 POST        /User/getUserProfile                   controllers.User.getUserProfile(token:String)
 POST        /User/getUser                          controllers.User.getUser(token:String)
 POST        /User/setUserCurrentRoom               controllers.User.setUserCurrentRoom(seq_room:Int, token:String)
 POST        /User/setUserStatusByToken             controllers.User.setUserStatusByToken(status:Int, token:String)
-GET        /User/Move                              controllers.Application.setUserXY(token:String, x:Int, y:Int)
+POST        /User/setUserXY                        controllers.User.setUserXY(token:String, x:Int, y:Int)
+POST        /User/JumpUser                         controllers.User.JumpUser(token:String)
+
+
 
 #Chat
 GET         /room                                  controllers.Application.chatRoom(token:Option[String])
@@ -27,6 +34,9 @@ POST        /assets/javascripts/chatroom.js        controllers.Application.chatR
 GET         /game                                  controllers.Application.gameRoom(token:String,seq_room:Long)
 GET         /game/chat                             controllers.Application.game(token:String,seq_room:Long)
 GET         /assets/javascripts/gameroom.js        controllers.Application.gameRoomJS(token:String,seq_room:Long)
+
+GET         /Room/addRoom                          controllers.Room.addRoom(title:String, time:Int, token:String)
+GET         /Room/delRoom                          controllers.Room.delRoom(seq_room:Int)
 
 
 POST        /Room/getRooms                         controllers.Room.getRooms

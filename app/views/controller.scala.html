@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
+        <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+        <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="en" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <title>Canvas</title>
+
+
+    </head>
+
+    <body>
+        <div id="fb-root"></div>
+        <script type="text/javascript">
+        $(window).bind("orientationchange", function() {
+        var orientation = window.orientation;
+        var new_orientation = (orientation) ? 0 : 90 + orientation;
+        $('body').css({
+        "-webkit-transform" : "rotate(" + new_orientation + "deg)"
+        });
+        });
+
+        $(document).ready(function() {
+        var start_x;
+        var start_y;
+        var temp_x;
+        var temp_y;
+        var move_x;
+        var move_y;
+        var action_x;
+        var action_y;
+        var left = 0;
+
+        var myInfo;
+
+        var addr = "165.194.111.154";
+
+
+
+        $("#btn-touch").bind('touchstart',function(e) {
+        e.preventDefault(); //	이벤트취소
+
+        var event = e.originalEvent;
+
+//        $("#temp_msg").html("터치가 시작되었어요.");
+
+        start_x = event.touches[0].pageX;
+        start_y = event.touches[0].pageY;
+        temp_x = event.touches[0].pageX;
+        temp_y = event.touches[0].pageY;
+
+        //$('#msg').append('<div>' + id + '/' + '(' + start_x + ',' + start_y + ')' + left + '</div>');
+
+
+
+        });
+
+        $(document).on('touchmove', function(e) {
+
+            e.preventDefault(); //	이벤트취소
+        });
+
+        $("#btn-touch").bind('touchmove',function(e) {
+
+        //                    	jQuery 이벤트 객체를 자바스크립트 표준 이벤트 객체로 바꾸기
+
+        //	이유는 jQuery 에서 자바 스크립트
+
+
+        var event = e.originalEvent;
+
+        var distinction_x;
+        var distinction_y;
+
+        //$('#msg').html('touch 이벤트 중입니다.');
+
+        //	div에 터치한 좌표값 넣기
+
+        move_x = event.touches[0].pageX;
+        move_y = event.touches[0].pageY;
+
+        //$('#msg').append(                                                                                                       '<div>' + id + '(MOVE : ' + move_x + ','+ move_y + ')' + '</div>');
+        distinction_x = (move_x - temp_x)*2;
+        distinction_y = move_y - temp_y;
+
+//        $("#temp_msg" ).append("x : "+distinction_x+" y : "+distinction_y);
+//        alert("1");
+        $.callAjax(distinction_x, 0);
+
+        temp_x = move_x;
+        temp_y = move_y;
+
+        });
+
+        $("#btn-touch").bind('touchend', function(e) {
+        e.preventDefault(); //	이벤트취소
+
+        var event = e.originalEvent;
+
+//        $("#temp_msg").append("<div>터치이벤트가 종료되었어요</div>");
+
+        //$('#msg').append('<div>' + id + '/' + '(' + start_x + ',' + start_y + ')' + '</div>');
+
+        });
+
+
+        $.callAjax = function(x,y) {
+            //$("#temp_msg").html(jsRoutes.controllers.User.setUserXY(myInfo.id,x,y));
+
+
+            $.ajax(
+                jsRoutes.controllers.User.setUserXY(myInfo.id,x,0)
+            ).done(function(data){
+                //alert(data.msg);
+                console.log(data);
+            }).fail(function(e){
+                //alert(e);
+                console.log(e);
+            });
+
+        }
+
+            $("#btn-jump" ).click(function(e) {
+                $.ajax(
+                jsRoutes.controllers.User.JumpUser(myInfo.id)
+                ).done(function(data){
+                //alert(data.msg);
+                console.log(data);
+                }).fail(function(e){
+                //alert(e);
+                console.log(e);
+                });
+            });
+
+
+        $.ajaxSetup({ cache: true });
+        $.getScript('//connect.facebook.net/en_UK/all.js', function(){
+        FB.init({
+        appId      : '236220253168811',
+        cookie     : true,  // enable cookies to allow the server to access
+        // the session
+        xfbml      : true,  // parse social plugins on this page
+        version    : 'v2.0' // use version 2.0
+        });
+
+        //$('#loginbutton,#feedbutton').removeAttr('disabled');
+        FB.getLoginStatus( $.statusChangeCallback);
+        });
+
+        $.statusChangeCallback = function(response){
+        console.log('statusChangeCallback');
+        console.log(response);
+        if (response.status === 'connected') {
+
+        $.addMe(response);
+        //drawGame();
+
+        // 1. Get My Profile
+
+        // 2. Get Friend List
+        } else if (response.status === 'not_authorized') {
+        $('.div-msg #msg' ).html('Please login using Facebook login button.');
+        $('.div-msg' ).fadeIn();
+        } else {
+        $('.div-msg #msg' ).html('Please login using Facebook login button.');
+        $('.div-msg' ).fadeIn();
+        }
+        }
+
+        $.addMe = function(e) {
+
+        FB.api('/me', function(response) {
+        $("#login_status_msg" ).html(response.name+"님 환영합니다.");
+        $("#fbBtn" ).hide();
+
+        myInfo = response;
+
+        FB.api(
+        'me?fields=picture.width(160).height(160).type(square)',
+        function(response2) {
+            myProfile_url = response2.picture.data.url;
+
+        });
+
+
+
+        });
+        }
+
+        function checkLoginStatus() {
+        FB.getLoginStatus(function(response) {
+        $.statusChangeCallback(response);
+        });
+        }
+
+        });
+
+
+
+
+        </script>
+        <div data-role="page" id="main">
+            <div data-role="header">
+                <h1>FBVOL_CLIENT</h1>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content">
+                    <!--<p><a href="#controller" class="ui-btn ui-shadow ui-corner-all">Facebook Login</a></p>-->
+                <p><fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginStatus();" id="fbBtn">
+                                </fb:login-button></p>
+
+                <p class="div-msg">
+                    <h3 id="login_status_msg"></h3>
+                </p>
+                <p><a href="#controller" class="ui-btn ui-shadow ui-corner-all">NGX Controller</a></p>
+            </div><!-- /content -->
+
+            <div data-role="footer">
+                <h4>Copyright <a href="http://www.izectlab.com">www.izectlab.com</a><br/>
+                    Developed by Team NGX in CAUCSE</h4>
+            </div><!-- /footer -->
+        </div>
+
+            <!-- Start of second page -->
+        <div data-role="page" id="controller">
+
+            <div data-role="header">
+                <h1>NGX Controller</h1>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content">
+                <div id="control_area">
+                    <div class="ui-grid-solo">
+                        <canvas class="ui-block-a" style="height:160px;" id="btn-touch">Touch</canvas>
+                    </div>
+                </div>
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><div class="ui-bar ui-bar-a" id="btn-jump" style="height:60px">Jump</div></div>
+                    <div class="ui-block-b"><div class="ui-bar ui-bar-a" id="btn-shoot" style="height:60px">Shoot</div></div>
+                </div><!-- /grid-a -->
+                <div id="temp_msg">
+                    a
+                </div>
+            </div><!-- /content -->
+
+            <div data-role="footer">
+                <h4>Copyright <a href="http://www.izectlab.com">www.izectlab.com</a><br/>
+                    Developed by Team NGX in CAUCSE</h4>
+            </div><!-- /footer -->
+        </div><!-- /page -->
+
+    </body>
+
+</html>

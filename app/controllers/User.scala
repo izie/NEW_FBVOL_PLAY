@@ -2,9 +2,12 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import models.{Room, Rooms, Users, User}
+import models._
 import play.api.libs.json._
 import scala.util.parsing.json.JSONArray
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
+import play.api.libs.json.JsNumber
 
 object User extends Controller {
 
@@ -80,6 +83,57 @@ object User extends Controller {
     }else{
       msg = "None"
     }
+
+    val json:JsValue = JsObject(
+      Seq(
+        "msg" -> JsString(msg)
+      )
+    )
+    Ok(json)
+  }
+
+  def setUserXY(token:String, x:Int, y:Int) = Action { implicit request =>
+    println("GAme - Chat / x : "+x+"y : "+y)
+
+
+    var tx:Int = x
+    var ty:Int = y
+    var msg:String = "ok"
+
+    if(0 != x || 0 != y){
+      var user:User = Users.getUserByToken(token)
+      //tx += user.location_x
+      //ty += user.location_y
+      //if(tx < 0)  tx = 0
+      //if(ty < 0)  ty = 0
+
+      //if(tx >= 800) tx = 799
+      //if(ty >= 600) ty = 599
+
+      //Users.setUserPosition(tx,ty,token)
+
+      msg = "Ok"
+      GameRoom.move(user,tx,ty)
+    }else{
+      msg = "None"
+    }
+
+    val json:JsValue = JsObject(
+      Seq(
+        "msg" -> JsString(msg)
+      )
+    )
+    Ok(json)
+  }
+
+  def JumpUser(token:String) = Action { implicit request =>
+    println("GAme - JumpUser")
+
+    var user:User = Users.getUserByToken(token)
+    var msg:String = "ok"
+
+    GameRoom.jump(user,user.seq_current_room)
+
 
     val json:JsValue = JsObject(
       Seq(

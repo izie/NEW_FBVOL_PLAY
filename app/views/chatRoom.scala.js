@@ -1,7 +1,10 @@
 @(user: User)(implicit r: RequestHeader)
 
+$(document ).ready(function() {
+
     var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
     var chatSocket = new WS("@routes.Application.chat(user.token).webSocketURL()")
+    //chatSocket.replace("ws:","wss:");
 
     $.sendMessage = function() {
         chatSocket.send(JSON.stringify(
@@ -40,4 +43,30 @@
         })
     }
 
-    chatSocket.onmessage = receiveEvent;
+    chatSocket.onmessage = function(e) {
+        $.receiveEvent(e);
+    }
+
+    $("#btn-make-room").click(function() {
+        $.ajax(
+                jsRoutes.controllers.Room.addRoom(
+                    $("#mkroom_title").val(),
+                    $("#mkroom_score").val(),
+                    "@user.token"
+                )
+            ).done(function(data){
+                console.log(data.seq);
+                //location.href="/game?token=@user.token&seq_room="+data.seq
+                $("#form2 input[name=seq_room]").val(data.seq);
+                $("#form2").submit();
+
+            } ).fail(function(e){
+                console.log(e);
+            });
+    });
+
+    $(".btn-join-room").click(function() {
+        $("#form2 input[name=seq_room]").val($(this).data("roomSeq"));
+        $("#form2").submit();
+    });
+});

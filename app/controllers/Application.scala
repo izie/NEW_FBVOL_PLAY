@@ -21,6 +21,10 @@ object Application extends Controller {
     Ok(views.html.index())
   }
 
+  def controller = Action { implicit request =>
+    Ok(views.html.controller())
+  }
+
   /**
    * Display the chat room page.
    */
@@ -28,7 +32,8 @@ object Application extends Controller {
     token.filterNot(_.isEmpty).map { username =>
       val user:User = Users.getUserByToken(token.getOrElse(""))
       val rooms:Seq[Room] = Rooms.getRooms
-      Ok(views.html.chatRoom(user,rooms))
+      val users:Seq[User] = Users.getUsers
+      Ok(views.html.chatRoom(user,rooms,users))
     }.getOrElse {
       Redirect(routes.Application.index).flashing(
         "error" -> "Please choose a valid username."
@@ -57,6 +62,7 @@ object Application extends Controller {
       val user:User = Users.getUserByToken(token)
       val room:Room = Rooms.getRoom(seq_room)
 
+
       Ok(views.html.gameRoom(user,room))
   }
 
@@ -71,15 +77,12 @@ object Application extends Controller {
    */
   def game(token: String, seq_room:Long) = WebSocket.async[JsValue] { request  =>
     println("GAme - Chat")
-    GameRoom.join(token,seq_room)
+    val user:User = Users.getUserByToken(token)
+    GameRoom.join(user,seq_room)
 
   }
 
-  def setUserXY(token:String, x:Int, y:Int) = Action { implicit request =>
-    println("GAme - Chat")
-    GameRoom.move(token,x,y)
-    Ok("")
-  }
+
 
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
@@ -89,8 +92,12 @@ object Application extends Controller {
         User.getUserProfile,
         User.setUserCurrentRoom,
         User.setUserStatusByToken,
+        User.setUserXY,
+        User.JumpUser,
         Room.getRooms,
-        Room.getPlayersProfile
+        Room.getPlayersProfile,
+        Room.addRoom,
+        Room.delRoom
 
       )
     ).as("text/javascript")

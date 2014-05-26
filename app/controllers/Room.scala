@@ -22,5 +22,30 @@ object Room extends Controller {
     Ok(views.html.playerProfile(room.owner,user,token))
   }
 
+  def addRoom(title:String,  time:Int, token:String) = Action {
+    val user:User = Users.getUserByToken(token)
+    val seq_room:Long = Rooms.addRoom(title, time, token)
+
+    val json:JsValue = JsObject(
+      Seq(
+        "seq" -> JsNumber(seq_room)
+      )
+    )
+    Ok(json)
+
+  }
+
+  def delRoom(seq_room:Int) = Action {
+
+    Rooms.removeRoom(seq_room)
+    val json:JsValue = JsObject(
+      Seq(
+        "code" -> JsNumber(100)
+      )
+    )
+    Ok(json)
+
+  }
+
 
 }

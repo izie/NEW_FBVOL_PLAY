@@ -1,4 +1,4 @@
-@(user:User,rooms:Seq[Room])(implicit request: RequestHeader)
+@(user:User,rooms:Seq[Room],users:Seq[User])(implicit request: RequestHeader)
 
 @main(Some(user),null) {
     <div class="col-md-8">
@@ -34,11 +34,18 @@
             </div>
         </div>
     </div>
+    <div class="col-md-12">
+        @users.map{ user =>
+            @views.html.room_players(user)
+        }
+    </div>
     <form action="@routes.Application.gameRoom(user.token,0)" class="pull-right" id="form2" style="display: none;">
         <input id="token" name="token" value="@user.token" class="input-small" type="text" placeholder="Username">
         <input id="seq_room" name="seq_room" value="" class="input-small" type="text" placeholder="Username">
         <button class="btn" type="submit">Sign in</button>
     </form>
+
+
 
     <script type="text/javascript" charset="utf-8" src="@routes.Application.chatRoomJs(user.token)"></script>
 
@@ -52,4 +59,32 @@
 
         });
     </script>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modal_makeroom" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Create New Room</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <span class="input-group-addon">Title</span>
+                        <input type="text" id="mkroom_title" class="form-control" placeholder="input room's title">
+                    </div>
+                    <br />
+                    <div class="input-group">
+                        <span class="input-group-addon">Max Score</span>
+                        <input type="text" id="mkroom_score" class="form-control" placeholder="20, 35, 40...">
+                    </div>
+                    <br />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-make-room">New</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }

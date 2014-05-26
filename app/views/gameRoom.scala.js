@@ -1,10 +1,13 @@
 @(user: User, room:Room)(implicit r: RequestHeader)
-    var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-    var chatSocket = new WS("@routes.Application.game(user.token,room.seq.getOrElse(0)).webSocketURL()")
 
+$(document ).ready(function() {
+
+    var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
+    var gameSocket = new WS("@routes.Application.game(user.token,room.seq.getOrElse(0)).webSocketURL()");
+    //chatSocket.replace("ws:","wss:");
 
     $.sendMessage = function() {
-        chatSocket.send(JSON.stringify(
+        gameSocket.send(JSON.stringify(
             {text: "haha"}
         ))
         //$("#talk").val('')
@@ -26,6 +29,14 @@
                 $.setUserXY(1,data.token, data.x, data.y);
             }else{
                 $.setUserXY(0,data.token, data.x, data.y);
+            }
+        }
+
+        if(data.action == "jump"){
+            @if(room.owner.token != user.token){
+                $.jumpAction(1);
+            }else{
+                $.jumpAction(0);
             }
         }
 
@@ -58,8 +69,22 @@
         */
     }
 
-    chatSocket.onmessage = $.receiveEvent
+    gameSocket.onmessage = function(e) {
+        $.receiveEvent(e);
+    }
 
     $("#btn-exit-room").click(function() {
-        $.sendMessage();
+        //$.sendMessage();
+
+        gameSocket.send(JSON.stringify(
+            {
+                code: "removeRoom",
+                seq_room:@room.seq
+            }
+        ))
     });
+
+    $(".btn-play").click(function() {
+        $.gameStart();
+    })
+});
