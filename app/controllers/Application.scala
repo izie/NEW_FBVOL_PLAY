@@ -89,7 +89,6 @@ object Application extends Controller {
     Ok(
       Routes.javascriptRouter("jsRoutes")(
         User.addUser,
-        User.getUserProfile,
         User.setUserCurrentRoom,
         User.setUserStatusByToken,
         User.setUserXY,

@@ -1,8 +1,8 @@
 @(user:User,room:Room)
 
-@main(Some(user),null) {
+@main(Some(user),null,2) {
     <div class="col-md-9">
-        <div class="panel panel-primary">
+        <div class="panel panel-default">
             <div class="panel-heading">
                 <h3>[@room.seq] @room.title <button type="button" class="btn btn-danger btn-exit-room btn-sm" id="btn-exit-room">Exit</button></h3>
             </div>

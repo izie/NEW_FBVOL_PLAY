@@ -1,4 +1,4 @@
-@(user: Option[User],room:Option[Room])(content: Html)
+@(user: Option[User],room:Option[Room],now_menu:Int,enemy:Option[User]=null)(content: Html)
 
 <!DOCTYPE html>
 
@@ -9,15 +9,13 @@
             <!-- Bootstrap -->
 
 
-        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
-            <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css">
 
-            <!-- Optional theme -->
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10-dev/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" language="javascript" src="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.js"></script>
 
-            <!-- Latest compiled and minified JavaScript -->
-        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
 
         <script type="text/javascript" src="//d3lp1msu2r81bx.cloudfront.net/kjs/js/lib/kinetic-v5.1.0.min.js"></script>
@@ -212,31 +210,51 @@
 
         </script>
 
-        <nav class="navbar navbar-default" role="navigation">
-            <div class="container-fluid">
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
                     <!-- Brand and toggle get grouped for better mobile display -->
                 <div class="navbar-header">
                     <a class="navbar-brand" href="@routes.Application.index()">FACEBOOK REMOTE VOLLEY BALL</a>
                 </div>
-                    <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav navbar-right">
-
-                            <li class="text-center">
-                                <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginStatus();" id="fbBtn">
-                                </fb:login-button>
-                                <span class="label label-success" id="login_status_msg"></span>
-                                <form action="@routes.Application.chatRoom(None)" class="pull-right" id="form1" style="display: none;">
-                                    <input id="token" name="token" class="input-small" type="text" placeholder="Username">
-                                    <button class="btn" type="submit">Sign in</button>
-                                </form>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="#"  data-toggle="modal" data-target="#helpModal">Help</a></li>
+                        @if(now_menu == 1 || now_menu == 2){
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Menu <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" data-toggle="modal" data-target="#modal_makeroom">New Room</a></li>
+                                    <li><a href="#">Setting</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#">Logout</a></li>
+                                </ul>
                             </li>
+                        }
+                        <li class="text-center">
+                            <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginStatus();" id="fbBtn">
+                            </fb:login-button>
+                            <span class="label label-success" id="login_status_msg"></span>
+                            <form action="@routes.Application.chatRoom(None)" class="pull-right" id="form1" style="display: none;">
+                                <input id="token" name="token" class="input-small" type="text" placeholder="Username">
+                                <button class="btn" type="submit">Sign in</button>
+                            </form>
+                        </li>
+
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        @if(now_menu == 2 && enemy != null){
+                            @views.html.profile(enemy)
+                        }
+                        @if(user != null){
+                            @views.html.profile(user)
+                        }
 
                     </ul>
                 </div>
             </div>
-        </nav>
-        <div class="container">
+        </div>
+        <div style="height:80px;"></div>
+        <div class="container" role="main">
         @if(room == null && user == null){
             <div class="row" id="display_progress">
                 <div class="progress progress-striped active">
@@ -263,6 +281,30 @@
 
         </div>
 
-
+            <!-- Modal -->
+        <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Help</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h4>What is this game?</h4>
+                        <p>NGX FB Volley Ball is simple volley ball game which is controlled by your any kind of smart-phone devices.</p>
+                        <h4>Game Rule</h4>
+                        <p>One on one matching system</p>
+                        <p>User can select  15, 18, 21 points as condition for win</p>
+                        <p>Passing a ball over a net within three touches</p>
+                        <p>User can give up during the game</p>
+                        <p>No time limit</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

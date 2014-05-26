@@ -1,11 +1,4 @@
-@(user:User)
-<div class="col-md-12 text-center">
-    <img src="@user.pic_url"  width="50" height="50" />
-</div>
-<div class="col-md-12 text-center">
-    <h5>@user.name</h5>
-    <strong>Win</strong> : @user.win
-    <strong>Lose</strong> : @user.lose <br />
-    <button type="button" class="btn btn-warning btn-join" data-user-seq="@user.seq">Setting</button>
-</div>
+@(user:Option[User])
+<li><img src="@user.get.pic_url"  width="50" height="50" /></li>
+<li><a href="#"><strong>@user.get.name</strong></a></li>
 

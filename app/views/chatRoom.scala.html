@@ -1,18 +1,23 @@
 @(user:User,rooms:Seq[Room],users:Seq[User])(implicit request: RequestHeader)
 
-@main(Some(user),null) {
-    <div class="col-md-8">
+@main(Some(user),null,1) {
+    <div class="jumbotron">
+        <h1>Welcome to NGX VolleyBall</h1>
+        <p>our game is world's only remote controlling volley ball game.</p>
+    </div>
+    <div class="col-md-12">
 
-        <div id="room_main" class=" panel panel-primary">
+        <div id="room_main" class=" panel panel-default">
             <div class="panel-heading">
-                <h3>Room List <button type="button" class="btn btn-danger btn-join btn-sm"  data-toggle="modal" data-target="#modal_makeroom">New Room</button></h3>
+                <h3 class="panel-title">Room List</h3>
             </div>
             <div class="panel-body">
-                <table id="tbl_room"  class="table table-bordered">
+                <table id="tbl_room"  class="table table-bordered datatable">
                     <thead>
                         <th>No</th>
                         <th>Title</th>
                         <th>Owner</th>
+                        <th>Score</th>
                         <th>User</th>
                         <th>Action</th>
                     </thead>
@@ -24,25 +29,24 @@
 
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="panel panel-danger"  id="profile_main">
-            <div class="panel-heading">
-                <h3>My Profile</h3>
-            </div>
-            <div class="panel-body" id="my_profile">
-                @views.html.profile(user)
-            </div>
-        </div>
-    </div>
+
     <div class="col-md-12">
-        @users.map{ user =>
-            @views.html.room_players(user)
-        }
+        <div id="room_main" class=" panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">User List</h3>
+            </div>
+            <div class="panel-body">
+        <div class="row">
+            @users.map{ user =>
+                @views.html.room_players(user)
+            }
+        </div>
+                </div></div>
+
     </div>
-    <form action="@routes.Application.gameRoom(user.token,0)" class="pull-right" id="form2" style="display: none;">
-        <input id="token" name="token" value="@user.token" class="input-small" type="text" placeholder="Username">
-        <input id="seq_room" name="seq_room" value="" class="input-small" type="text" placeholder="Username">
-        <button class="btn" type="submit">Sign in</button>
+    <form action="@routes.Application.gameRoom(user.token,0)" class="pull-right" id="form2">
+        <input id="token" name="token" value="@user.token" class="input-small" type="hidden" placeholder="Username">
+        <input id="seq_room" name="seq_room" value="" class="input-small" type="hidden" placeholder="Username">
     </form>
 
 
@@ -56,6 +60,8 @@
                 $('#form2 input[name=seq_room]' ).val($(this ).data('roomSeq'));
                 $('#form2' ).submit();
             });
+
+            $('.datatable').dataTable();
 
         });
     </script>

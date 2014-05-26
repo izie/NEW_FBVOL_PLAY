@@ -25,14 +25,6 @@ object User extends Controller {
     )
   }
 
-  def getUserProfile(token:String) = Action{
-    Ok(views.html.profile(Users.getUserByToken(token)))
-  }
-
-  def getUsersProfile(token:String) = Action{
-    Ok(views.html.profile(Users.getUserByToken(token)))
-  }
-
 
   def getUser(token:String) = Action{
     val user:User = Users.getUserByToken(token)

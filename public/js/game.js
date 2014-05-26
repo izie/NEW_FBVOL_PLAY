@@ -58,7 +58,7 @@ var score_B = 0;
 var countTime = 3; // countdown 할 수
 var countDownField = null;
 
-var ballMode = 'ready';
+var ballMode = 'move';
 
 // Gravity
 var grav_x = 0;

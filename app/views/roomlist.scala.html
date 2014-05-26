@@ -1,12 +1,14 @@
 @(rooms:Seq[Room])
 @rooms.zipWithIndex.map{ case(room,no) =>
-  <tr>
+  <tr id="roomlist_@room.seq">
       <td>@{no+1}</td>
       <td>@room.title</td>
+
       <td>@room.owner.name</td>
+      <td>@room.time</td>
       <td>@room.game_status match {
-          case 1 => {WAIT}
-          case 2 => {PLAYING}
+          case 1 => {<span class="label label-default">wait</span>}
+          case 2 => {<span class="label label-info">playing</span>}
           case _ => {ERROR}
       }
       </td>

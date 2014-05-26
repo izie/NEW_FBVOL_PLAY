@@ -12,7 +12,6 @@ POST        /Controller                            controllers.Application.contr
 
 #User
 POST        /User/addUser                          controllers.User.addUser(name:String, email:String, pic_url:String, token:String)
-POST        /User/getUserProfile                   controllers.User.getUserProfile(token:String)
 POST        /User/getUser                          controllers.User.getUser(token:String)
 POST        /User/setUserCurrentRoom               controllers.User.setUserCurrentRoom(seq_room:Int, token:String)
 POST        /User/setUserStatusByToken             controllers.User.setUserStatusByToken(status:Int, token:String)
