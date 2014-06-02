@@ -52,9 +52,9 @@
                 $.ajaxSetup({ cache: true });
                 $.getScript('//connect.facebook.net/en_UK/all.js', function(){
                     FB.init({
-                    //appId      : '236220253168811', // Original
+                    appId      : '236220253168811', // Original
                     //appId      : '243183015805868', // Sangtae
-                    appId       : '241309625993207', // Matthew Test
+                    //appId       : '241309625993207', // Matthew Test
                         frictionlessRequests: true,
                         status: true,
                         version: 'v2.0'
@@ -252,9 +252,9 @@
                 $.ajaxSetup({ cache: true });
                 $.getScript('//connect.facebook.net/en_UK/all.js', function(){
                 FB.init({
-                //appId      : '236220253168811', // Original
+                appId      : '236220253168811', // Original
                 //appId      : '243183015805868', // Sangtae
-                appId       : '241309625993207', // Matthew Test
+                //appId       : '241309625993207', // Matthew Test
                 frictionlessRequests: true,
                 status: true,
                 version: 'v2.0'
@@ -358,7 +358,7 @@
                             </li>
                         }
                         <li class="text-center">
-                            <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginState" id="fbBtn">
+                            <fb:login-button scope="public_profile,email,user_friends,manage_friendlists,publish_actions" size="large" max_rows="1" onlogin="checkLoginState" id="fbBtn">
                             </fb:login-button>
                             <span class="label label-success" id="login_status_msg"></span>
                             <form action="@routes.Application.chatRoom(None)" class="pull-right" id="form1" style="display: none;">

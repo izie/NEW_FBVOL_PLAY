@@ -1,12 +1,12 @@
 /*
- - 공 충돌시 튕기는 값 조정
- - 슈팅, 점프 테스트
- - 슈팅 방향 별 값 조정
- - 점수 디비연결
+ - 공 충돌시 튕기는 값 조정     done
+ - 슈팅, 점프 테스트        done
+ - 슈팅 방향 별 값 조정  nop
+ - 점수 디비연결    nop
  - 점수 선택해서 승패 판정 -> 디비연결
- - 일시정지, 기권 등 세부 기능
+ - 일시정지, 기권 등 세부 기능     nop
  - 서버에서 사용자 움직임 범위 제한
- - 코트 한쪽에서 3번 터치
+ - 코트 한쪽에서 3번 터치    안해
  */
 
 
@@ -22,6 +22,7 @@ var anim_countdown = null;
 var user1_Shoot = null;
 var user2_Shoot = null;
 var delay = null;
+var doubleNet = null;
 
 var kimages = {};
 var userInfo = {};
@@ -240,7 +241,8 @@ $.initVar = function() {
     userShoot[0] = 0;
     userShoot[1] = 0;
 
-    win_Score = 11; //default value;
+    doubleNet = 0;
+    //win_Score = 11; //default value;
 }
 
 $.setUserImage = function(seq, pic_url) {
@@ -250,14 +252,28 @@ $.setUserImage = function(seq, pic_url) {
 
 $.setUserXY = function(user_type, id,x,y) {
 
-    if(kimages[user_type].getX() + x >=0 && kimages[user_type].getX() + x < 800){
-        kimages[user_type].setX(kimages[user_type].getX()+x);
+    if(user_type == 0){
+        if(kimages[user_type].getX() + x >=0 && kimages[user_type].getX() + x < 315){
+            kimages[user_type].setX(kimages[user_type].getX()+x);
+        }
+
+        //kimages[user_type].setY(y);
+
+        layer.add(kimages[user_type]);
+
+        stage.add(layer);
+    }else if(user_type == 1){
+        if(kimages[user_type].getX() + x >=405 && kimages[user_type].getX() + x < 720){
+            kimages[user_type].setX(kimages[user_type].getX()+x);
+        }
+
         //kimages[user_type].setY(y);
 
         layer.add(kimages[user_type]);
 
         stage.add(layer);
     }
+
 }
 
 var images = {};
@@ -344,78 +360,23 @@ $.addUser = function(user_type,user) {
 
 }
 
-$.callAjax = function() {
-    var requestUrl = 'http://localhost.com:9000/User/getUser';
-
-    $.ajax({
-        url:requestUrl,
-        type:'GET',
-        error: function(){
-            console.log("Ajax Loading Error");
-        },
-        success: function(data){
-            var images = {};
-            var k = 0;
-            //var results = $.parseJSON(data);
-            for(var i = 0 ; i < data.length ; i++){
-                var oUser = data[i];
-
-                if(numUser != 0){
-                    kimages[i].setX(oUser.x);
-                    kimages[i].setY(oUser.y);
-                    kimages[i].setOffset(40, 40);
-                }else{
-                    //$.addImg(oUser.x,oUser.y,oUser.id);
-                    images[oUser.id] = new Image();
-
-                    images[oUser.id].onload = function() {
-                        //alert(images[numUser].src);
-                        kimages[numUser] = new Kinetic.Image({
-                            image: images[data[numUser].id],
-                            x: data[numUser].x,
-                            y: data[numUser].y,
-                            width:80,
-                            height:80,
-                            draggable: true        //나중에 여기 끄기
-                        });
-
-                        kimages[numUser].setOffset(40, 40);
-
-                        //alert(data[numUser].id+"/"+data[numUser].x+"/"+data[numUser].y);
-                        layer.add(kimages[numUser]);
-
-                        numUser++;
-                        stage.add(layer);
-                    };
-
-                    images[oUser.id].src = profile_pic[oUser.id];
-                }
-
-            }
-
-            // finally, we need to redraw the layer hit graph
-            layer.drawHit();
-
-            userData = data;
-
-        }
-
-    });
-};
 
 $.boundaryCheck = function(){
 
     if(ball.getX() <=25){
+        doubleNet = 0;
         if(speed_x < 0)
             speed_x = speed_x * -1;
 
     }
     if(ball.getX() >= 775){
+        doubleNet = 0;
         if(speed_x > 0)
             speed_x = speed_x * -1;
 
     }
     if(ball.getY() <= 25){
+        doubleNet = 0;
         if(speed_y < 0)
             speed_y = speed_y * -1;
 
@@ -427,56 +388,57 @@ $.writeWin = function(i){
 $.writeLose = function(i){
     //디비쓰기
 }
+/*
+ $.calculateScore_threeTouch = function(i){
 
-$.calculateScore_threeTouch = function(i){
+ if(i == 0){
+ ball.setX(630);
+ ball.setY(70);
+ score_B++;
+ scoreBoard_2.setText(score_B);
+ }else{
+ ball.setX(150);
+ ball.setY(70);
+ score_A++;
+ scoreBoard_1.setText(score_A);
+ }
+ if(score_A >= win_Score){
+ $.writeWin(0);
+ $.writeLose(1);
+ score_A = 0;
+ score_B = 0;
+ scoreBoard_1.setText(score_A);
+ scoreBoard_2.setText(score_B);
 
-    if(i == 0){
-        ball.setX(630);
-        ball.setY(70);
-        score_B++;
-        scoreBoard_2.setText(score_B);
-    }else{
-        ball.setX(150);
-        ball.setY(70);
-        score_A++;
-        scoreBoard_1.setText(score_A);
-    }
-    if(score_A >= win_Score){
-        $.writeWin(0);
-        $.writeLose(1);
-        score_A = 0;
-        score_B = 0;
-        scoreBoard_1.setText(score_A);
-        scoreBoard_2.setText(score_B);
+ ballMode ='ready';
 
-        ballMode ='ready';
+ }
+ else if(score_B >= win_Score){
+ $.writeWin(1);
+ $.writeLose(0);
+ score_A = 0;
+ score_B = 0;
+ scoreBoard_1.setText(score_A);
+ scoreBoard_2.setText(score_B);
 
-    }
-    else if(score_B >= win_Score){
-        $.writeWin(1);
-        $.writeLose(0);
-        score_A = 0;
-        score_B = 0;
-        scoreBoard_1.setText(score_A);
-        scoreBoard_2.setText(score_B);
+ ballMode ='ready';
 
-        ballMode ='ready';
+ }else{
+ kimages[0].setX(100);             //서버에서 날아오는 이전의 캐릭터 위치로 다시 돌아감!!
+ kimages[0].setY(500);
 
-    }else{
-        kimages[0].setX(100);             //서버에서 날아오는 이전의 캐릭터 위치로 다시 돌아감!!
-        kimages[0].setY(500);
+ kimages[1].setX(610);
+ speed_x = 0;
 
-        kimages[1].setX(610);
-        speed_x = 0;
+ kimages[1].setY(500);
+ speed_y = 0;
 
-        kimages[1].setY(500);
-        speed_y = 0;
-
-        ballMode = "reset";
-    }
+ ballMode = "reset";
+ }
 
 
-}
+ }
+ */
 $.calculateScore = function(){
 
     if(ball.getY() > gHeight){
@@ -500,7 +462,10 @@ $.calculateScore = function(){
             score_B = 0;
             scoreBoard_1.setText(score_A);
             scoreBoard_2.setText(score_B);
+            $.setOwnerButton();
+            alert(userInfo[0].name+" 님이 승리하셨습니다!");
 
+            $.writeResult(0,userInfo);
             ballMode ='ready';
         }
         else if(score_B >= win_Score){
@@ -510,7 +475,9 @@ $.calculateScore = function(){
             score_B = 0;
             scoreBoard_1.setText(score_A);
             scoreBoard_2.setText(score_B);
-
+            $.setOwnerButton();
+            alert(userInfo[1].name+" 님이 승리하셨습니다!");
+            $.writeResult(1,userInfo);
             ballMode ='ready';
 
         }else{
@@ -532,7 +499,7 @@ $.calculateScore = function(){
 }
 
 $.jumpAction = function(i){
-
+    //debugTxt.setText("저어어어어어엄프!");
     if(userSpeed_y[i] == 0 ){
         kimages[i].setY(499);
         userSpeed_y [i] = -80;
@@ -555,6 +522,7 @@ $.shooting = function(i){
             user1_Shoot.start();
         }
     }else{
+
         if(userShoot[1] == 0){
             shootTime[1] = (new Date()).getTime();
             user2_Shoot.start();
@@ -569,9 +537,8 @@ $.initAnim = function(){
 
 
         $.startShootingAction(0);
-        //debugTxt.setText("user1 Shooting:     "+(new Date()).getTime());
-        if( (new Date()).getTime() -shootTime[0] >= 900){
 
+        if( (new Date()).getTime() -shootTime[0] >= 600){
             $.endShootingAction(0);
             this.stop();
         }
@@ -580,7 +547,7 @@ $.initAnim = function(){
     user2_Shoot = new Kinetic.Animation(function(frame){
         $.startShootingAction(1);
 
-        if( (new Date()).getTime() - shootTime[1] >= 900 ){
+        if( (new Date()).getTime() - shootTime[1] >= 600 ){
             $.endShootingAction(1);
             this.stop();
         }
@@ -589,7 +556,7 @@ $.initAnim = function(){
     delay = new Kinetic.Animation(function (){
         isCheckCollision = 0
         //debugTxt.setText("기둘!");
-        if( (new Date()).getTime() - delayTime >= 20 ){
+        if( (new Date()).getTime() - delayTime >= 50 ){
             //debugTxt.setText("다시 ㄱㄱ!");
             isCheckCollision = 1;
             this.stop();
@@ -633,7 +600,7 @@ $.initAnim = function(){
 
         }
         if (ballMode == 'move'){
-            $.callAjax();
+            //$.callAjax();
             var tmod = (frame.timeDiff) * 0.005;
 
             // 속도 만큼 공을 움직인다.
@@ -718,24 +685,23 @@ $.isBallTouched = function(x1,y1){
             }
             else
                 touchLimite[0] = 0;
-
+            doubleNet = 0;
             $.collisionDelay();
 
             if(userShoot[i] == 1){
                 //debugTxt.setText("슈우우우우우웃!");
-                var ii = 200;
-                speed_y = -3;
+                var ii = 220;
+                speed_y =  10000 / Math.abs( x1 -  fence.getX() );
+                debugTxt.setText("네트 위 충돌! :" +  speed_y);
                 if(x1 < 400)
                     speed_x = ii;
                 else
                     speed_x = -ii;
             }
             else{
-                speed_y = -70;
-
-                speed_x = (x1 - (kimages[i].getX()+40)) * 1.3 ;
-                //speed_y = -3;
-                //speed_x = -(x1 - 400) * 1.3;
+                //speed_y = -70;
+                speed_y = (y1 - (kimages[i].getY()+40)) - 20;
+                speed_x = (x1 - (kimages[i].getX()+40)) * 1.5 ;
             }
 
         }
@@ -754,34 +720,24 @@ $.isCollisionToNet = function(x1,y1){
 
     var distance = x1 - (x2+5) ;
 
-    if( (( y2 <=  y1+25) && ( y1+25 <= y2+5 )) && ((x2 <= x1)&&(x1 <= x3))  ){ // 네트 위 충돌
-        speed_y = speed_y * -1;
-        $.collisionDelay();
+    if( (( y2 <=  y1+20) && ( y1+20 <= y2+5 )) && ((x2 <= x1)&&(x1 <= x3)) && doubleNet != 1 ){ // 네트 위 충돌
+        var tempX = -1 * speed_x;
 
-    }else if((y1 > y2 -25) && ( -30 <= distance  && distance <= 30 ) ){ //
-        //debugTxt.setText("collision!  오른쪽");
+        if( tempX < 0 ) tempX -= -1;
+
+        if(speed_x < speed_y){
+            //debugTxt.setText("네트 위 충돌!");
+            speed_y = speed_y * -1;     ////////////////////////////////////////////////// 수정
+            doubleNet = 1;
+            $.collisionDelay();
+        }
+
+    }else if((y1 > y2 -25) && ( -30 <= distance  && distance <= 30 ) && doubleNet != 1 ){ //
         speed_x = speed_x * -0.8;
+        doubleNet = 1;
         $.collisionDelay();
 
     }
-    /*if( (y1 > y2 -25) && ( -30 <= distance  && distance <= 30 ) && (speed_x > 0)){  // 네트 왼쪽 충돌
-     debugTxt.setText("collision!  왼쪽");
-     speed_x = speed_x * -0.8;
-
-     } */
-    /*
-     if( (y1 > y2 -25) && ((x2 <= x1+25 ) &&(x1+25 <= x3 )) && (speed_x > 0)){  // 네트 왼쪽 충돌
-     debugTxt.setText("collision!  왼쪽");
-     speed_x = speed_x * -0.8;
-
-     }
-     if((y1 > y2 -25) &&((x2 <= x1-25)&& (x3 >= x1-25 )) &&(speed_x < 0) ){ // 네트 오른쪽 충돌
-     debugTxt.setText("collision!  오른쪽");
-     speed_x = speed_x * -0.8;
-
-     }
-     */
-
 
 }
 $.collisionDelay = function(){

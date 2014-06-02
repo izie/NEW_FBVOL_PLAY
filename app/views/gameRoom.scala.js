@@ -135,4 +135,84 @@ $(document ).ready(function() {
         ))
     });
 
+    $.setOwnerButton = function () {
+        if("@room.owner.token" == "@user.token"){
+            $(".btn-play").addClass("disabled");
+        }
+    }
+
+    $.writeResult = function(winner,users) {
+        if(winner == 0 && "@room.owner.token" == "@user.token") { // 내가 방장이고 방장이이겼을때
+            /* make the API call */
+            FB.api(
+                "/me/feed",
+                "POST",
+                {
+                    "object": {
+                        "message": users[0].name+"님이 "+users[1].name+"님과의 NGX 게임에서 승리하였습니다. 축하해 주세요!",
+                        "link" : "https://apps.facebook.com/ngx_fbvol/"
+                    }
+                },
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                    }
+                }
+            );
+        }else if(winner == 1 && "@room.owner.token" == "@user.token"){
+            /* make the API call */
+            FB.api(
+                "/me/feed",
+                "POST",
+                {
+                    "object": {
+                        "message": users[0].name+"님이 "+users[1].name+"님과의 NGX 게임에서 졌습니다. 놀려 주세요!",
+                        "link" : "https://apps.facebook.com/ngx_fbvol/"
+                    }
+                },
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                    }
+                }
+            );
+        }else if(winner == 0 && "@room.owner.token" != "@user.token"){
+            /* make the API call */
+            FB.api(
+                "/me/feed",
+                "POST",
+                {
+                    "object": {
+                        "message": users[1].name+"님이 "+users[0].name+"님과의 NGX 게임에서 졌습니다. 놀려 주세요!",
+                        "link" : "https://apps.facebook.com/ngx_fbvol/"
+                    }
+                },
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                    }
+                }
+            );
+        }else if(winner == 1 && "@room.owner.token" != "@user.token"){
+            /* make the API call */
+            FB.api(
+                "/me/feed",
+                "POST",
+                {
+                    "object": {
+                        "message": users[0].name+"님이 "+users[1].name+"님과의 NGX 게임에서 승리하였습니다. 축하해 주세요!",
+                        "link" : "https://apps.facebook.com/ngx_fbvol/"
+                    }
+                },
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                    }
+                }
+            );
+        }
+    }
+
+    $.settingScore(@room.time);
+
 });
