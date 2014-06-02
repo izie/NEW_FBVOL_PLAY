@@ -135,4 +135,22 @@ object User extends Controller {
     Ok(json)
   }
 
+
+  def ShootUser(token:String) = Action { implicit request =>
+    println("GAme - ShootUser")
+
+    var user:User = Users.getUserByToken(token)
+    var msg:String = "ok"
+
+    GameRoom.shoot(user,user.seq_current_room)
+
+
+    val json:JsValue = JsObject(
+      Seq(
+        "msg" -> JsString(msg)
+      )
+    )
+    Ok(json)
+  }
+
 }

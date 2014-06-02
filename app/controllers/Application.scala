@@ -93,6 +93,7 @@ object Application extends Controller {
         User.setUserStatusByToken,
         User.setUserXY,
         User.JumpUser,
+        User.ShootUser,
         Room.getRooms,
         Room.getPlayersProfile,
         Room.addRoom,

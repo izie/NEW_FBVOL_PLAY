@@ -141,11 +141,24 @@
                 });
             });
 
+        $("#btn-shoot" ).click(function(e) {
+        $.ajax(
+        jsRoutes.controllers.User.ShootUser(myInfo.id)
+        ).done(function(data){
+        //alert(data.msg);
+        console.log(data);
+        }).fail(function(e){
+        //alert(e);
+        console.log(e);
+        });
+        });
+
 
         $.ajaxSetup({ cache: true });
         $.getScript('//connect.facebook.net/en_UK/all.js', function(){
         FB.init({
-        appId      : '236220253168811',
+        //appId      : '236220253168811',
+        appId       : '243183015805868',
         cookie     : true,  // enable cookies to allow the server to access
         // the session
         xfbml      : true,  // parse social plugins on this page

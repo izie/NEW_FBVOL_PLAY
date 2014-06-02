@@ -21,6 +21,7 @@ var anim = null;
 var anim_countdown = null;
 var user1_Shoot = null;
 var user2_Shoot = null;
+var delay = null;
 
 var kimages = {};
 var userInfo = {};
@@ -36,8 +37,6 @@ var bgimage = null;
 var stage = null;
 
 var layer = null;
-var layer_countdown = null;
-
 // Ball
 var ball = null;
 
@@ -55,18 +54,13 @@ var score_B = 0;
 
 
 //CountDown
-var countTime = 3; // countdown 할 수
 var countDownField = null;
 
-var ballMode = 'move';
+var ballMode = 'ready';
 
 // Gravity
-var grav_x = 0;
-var grav_y = 9;
-
-// Start Point
-var start_x;
-var start_y;
+var grav_y = 15;               // 중력이랑 와이축방향 점프값 조정!!!
+var grav_y_ball = 11;
 
 // BAll Speed
 var speed_x;
@@ -87,7 +81,9 @@ var lastTime =0;
 var time = 0;
 
 var touchLimite = {};
-
+var win_Score = 0;
+var isCheckCollision = 1; // 1: do, 0: undo
+var delayTime = 0;
 
 /*var timer = setInterval(function () {
  //alert('Timer Start');
@@ -101,6 +97,8 @@ $.Init = function() {
     $.initRes();
     $.initVar();
     $.initAnim();
+    ballMode = 'ready';
+    //debugTxt.setText("asdfsfasdfasdfasfasdf" + touchLimite[0] + "  1: "+touchLimite[1]);
     //$('#display_progress .progress-bar' ).css('width','90%');
     $.gameStart();
 
@@ -228,13 +226,21 @@ $.initRes = function() {
 
 
 }
+$.settingScore = function(i){      ////게임전 반드시 수행. 안하면 default value;
+    win_Score = i;
+}
 
 $.initVar = function() {
     speed_x = 0;
     speed_y = 0;
-
     touchLimite[0] =0;
     touchLimite[1] =0;
+    userSpeed_y[0] = 0;
+    userSpeed_y[1] = 0;
+    userShoot[0] = 0;
+    userShoot[1] = 0;
+
+    win_Score = 11; //default value;
 }
 
 $.setUserImage = function(seq, pic_url) {
@@ -399,22 +405,29 @@ $.callAjax = function() {
 
 $.boundaryCheck = function(){
 
-    if(ball.getX() <=30){
+    if(ball.getX() <=25){
         if(speed_x < 0)
             speed_x = speed_x * -1;
 
     }
-    if(ball.getX() >= 770){
+    if(ball.getX() >= 775){
         if(speed_x > 0)
             speed_x = speed_x * -1;
 
     }
-    if(ball.getY() <= 30){
+    if(ball.getY() <= 25){
         if(speed_y < 0)
             speed_y = speed_y * -1;
 
     }
 }
+$.writeWin = function(i){
+    //디비쓰기
+}
+$.writeLose = function(i){
+    //디비쓰기
+}
+
 $.calculateScore_threeTouch = function(i){
 
     if(i == 0){
@@ -428,22 +441,46 @@ $.calculateScore_threeTouch = function(i){
         score_A++;
         scoreBoard_1.setText(score_A);
     }
+    if(score_A >= win_Score){
+        $.writeWin(0);
+        $.writeLose(1);
+        score_A = 0;
+        score_B = 0;
+        scoreBoard_1.setText(score_A);
+        scoreBoard_2.setText(score_B);
 
-    kimages[0].setX(100);             //서버에서 날아오는 이전의 캐릭터 위치로 다시 돌아감!!
-    kimages[0].setY(500);
+        ballMode ='ready';
 
-    kimages[1].setX(610);
-    speed_x = 0;
+    }
+    else if(score_B >= win_Score){
+        $.writeWin(1);
+        $.writeLose(0);
+        score_A = 0;
+        score_B = 0;
+        scoreBoard_1.setText(score_A);
+        scoreBoard_2.setText(score_B);
 
-    kimages[1].setY(500);
-    speed_y = 0;
+        ballMode ='ready';
 
-    ballMode = "reset";
+    }else{
+        kimages[0].setX(100);             //서버에서 날아오는 이전의 캐릭터 위치로 다시 돌아감!!
+        kimages[0].setY(500);
+
+        kimages[1].setX(610);
+        speed_x = 0;
+
+        kimages[1].setY(500);
+        speed_y = 0;
+
+        ballMode = "reset";
+    }
+
+
 }
 $.calculateScore = function(){
 
     if(ball.getY() > gHeight){
-        //ballMode = 'stop';
+
         if(ball.getX() < 400){
             ball.setX(630);
             ball.setY(70);
@@ -456,16 +493,38 @@ $.calculateScore = function(){
             scoreBoard_1.setText(score_A);
         }
 
-        kimages[0].setX(100);             //서버에서 날아오는 이전의 캐릭터 위치로 다시 돌아감!!
-        kimages[0].setY(500);
+        if(score_A >= win_Score){
+            $.writeWin(0);
+            $.writeLose(1);
+            score_A = 0;
+            score_B = 0;
+            scoreBoard_1.setText(score_A);
+            scoreBoard_2.setText(score_B);
 
-        kimages[1].setX(610);
-        speed_x = 0;
+            ballMode ='ready';
+        }
+        else if(score_B >= win_Score){
+            $.writeWin(1);
+            $.writeLose(0);
+            score_A = 0;
+            score_B = 0;
+            scoreBoard_1.setText(score_A);
+            scoreBoard_2.setText(score_B);
 
-        kimages[1].setY(500);
-        speed_y = 0;
+            ballMode ='ready';
 
-        ballMode = "reset";
+        }else{
+            kimages[0].setX(100);             //서버에서 날아오는 이전의 캐릭터 위치로 다시 돌아감!!
+            kimages[0].setY(500);
+
+            kimages[1].setX(610);
+            speed_x = 0;
+
+            kimages[1].setY(500);
+            speed_y = 0;
+
+            ballMode = "reset";
+        }
 
     }
 
@@ -475,33 +534,44 @@ $.calculateScore = function(){
 $.jumpAction = function(i){
 
     if(userSpeed_y[i] == 0 ){
-        userSpeed_y [i] = -40;
+        kimages[i].setY(499);
+        userSpeed_y [i] = -80;
     }
 }
 
 $.startShootingAction = function(i){
+    //debugTxt.setText("슛 시작!");
     userShoot[i] = 1;
 }
 
 $.endShootingAction = function(i){
+    //debugTxt.setText("슛 끝!");
     userShoot[i] = 0;
 }
 $.shooting = function(i){
-    if(i == 0 )
-        if(userShoot[0] == 0)
+    if(i == 0 ){
+        if(userShoot[0] == 0){
+            shootTime[0] = (new Date()).getTime();
             user1_Shoot.start();
-        else
-        if(userShoot[1] == 0)
+        }
+    }else{
+        if(userShoot[1] == 0){
+            shootTime[1] = (new Date()).getTime();
             user2_Shoot.start();
+        }
+    }
 }
 
 $.initAnim = function(){
     var firstTime = 0;
 
     user1_Shoot = new Kinetic.Animation(function(frame){
-        $.startShootingAction(0);
 
-        if( shootTime[0] - (new Date()).getTime() >= 1000){
+
+        $.startShootingAction(0);
+        //debugTxt.setText("user1 Shooting:     "+(new Date()).getTime());
+        if( (new Date()).getTime() -shootTime[0] >= 900){
+
             $.endShootingAction(0);
             this.stop();
         }
@@ -510,11 +580,20 @@ $.initAnim = function(){
     user2_Shoot = new Kinetic.Animation(function(frame){
         $.startShootingAction(1);
 
-        if( shootTime[1] - (new Date()).getTime() >= 1000 ){
+        if( (new Date()).getTime() - shootTime[1] >= 900 ){
             $.endShootingAction(1);
             this.stop();
         }
 
+    });
+    delay = new Kinetic.Animation(function (){
+        isCheckCollision = 0
+        //debugTxt.setText("기둘!");
+        if( (new Date()).getTime() - delayTime >= 20 ){
+            //debugTxt.setText("다시 ㄱㄱ!");
+            isCheckCollision = 1;
+            this.stop();
+        }
     });
 
 
@@ -553,7 +632,7 @@ $.initAnim = function(){
             firstTime = frame.time / 35;
 
         }
-        if (ballMode == 'move'){     // 상황별로 나누기, 지금은 그냥 공움직이게 되어잇음.
+        if (ballMode == 'move'){
             $.callAjax();
             var tmod = (frame.timeDiff) * 0.005;
 
@@ -561,22 +640,27 @@ $.initAnim = function(){
             ball.setX(ball.getX() + (speed_x * tmod));
             ball.setY(ball.getY() + (speed_y * tmod));
             // 속도가 중력가속도의 영향을 받는다.
-            speed_y += grav_y * tmod;
+            speed_y += grav_y_ball * tmod;
             for(var i = 0 ; i< numUser; i++ ){
+                if( kimages[i].getY() < 500){
+                    if(kimages[i].getY() + (userSpeed_y[i] * tmod) > 500)
+                        kimages[i].setY(500);
+                    else
+                        kimages[i].setY(kimages[i].getY() + (userSpeed_y[i] * tmod));
 
-                if(  kimages[i].getY() < 500){
-                    kimages[i].setY(kimages[i].getY() + (userSpeed_y[i] * tmod));
                     userSpeed_y[i] += grav_y * tmod;
-                }
-                else{
-                    userSpeed_y[i] = 0
+                }else{
+                    userSpeed_y[i] = 0;
                 }
             }
             $.boundaryCheck();
             $.calculateScore();
 
-            $.isBallTouched(ball.getX(),ball.getY()); // 사람체크
-            $.isCollisionToNet(ball.getX(),ball.getY()); // 울타리체크
+            if(isCheckCollision == 1){
+                $.isBallTouched(ball.getX(),ball.getY());// 사람체크
+                $.isCollisionToNet(ball.getX(),ball.getY()); // 울타리체크
+            }
+
         }else if (ballMode == 'pause'){
             //countDownField.setText("중지!");
         }
@@ -595,9 +679,7 @@ $.initAnim = function(){
 
             speed_x = 0;
             speed_y = 0;
-
-            ballMode = 'reset';
-        }else if(ballMode ='reset'){
+        }else if(ballMode =='reset'){
             $.initVar();
             $.countDown();
         }
@@ -612,7 +694,7 @@ $.initAnim = function(){
 }
 
 $.isBallTouched = function(x1,y1){
-    debugTxt.setText("0 :" + touchLimite[0] + "  1: "+touchLimite[1]);
+    //    debugTxt.setText("0 :" + touchLimite[0] + "  1: "+touchLimite[1]);
 
     for(i = 0 ; i < numUser ; i++){
         var character_x =  kimages[i].getX() +40;
@@ -622,10 +704,11 @@ $.isBallTouched = function(x1,y1){
 
         if(distance < 4225){
 
-            if(++touchLimite[i] >= 4){
-                $.calculateScore_threeTouch(i);
-                return;
-            }
+            /*if(++touchLimite[i] >= 4){          //error가 있음. 하스브엉
+             $.calculateScore_threeTouch(i);
+             return;
+             } */
+
 
             if(i == 0 ){
                 touchLimite[1] = 0;
@@ -633,14 +716,21 @@ $.isBallTouched = function(x1,y1){
             else
                 touchLimite[0] = 0;
 
+            $.collisionDelay();
 
             if(userShoot[i] == 1){
+                //debugTxt.setText("슈우우우우우웃!");
+                var ii = 200;
                 speed_y = -3;
-                speed_x = -(x1 - 400) * 1.3;
+                if(x1 < 400)
+                    speed_x = ii;
+                else
+                    speed_x = -ii;
             }
             else{
-                speed_y = -50;
-                speed_x = (x1 - (kimages[i].getX()+40)) * 1.3;
+                speed_y = -70;
+
+                speed_x = (x1 - (kimages[i].getX()+40)) * 1.3 ;
                 //speed_y = -3;
                 //speed_x = -(x1 - 400) * 1.3;
             }
@@ -653,27 +743,49 @@ $.isBallTouched = function(x1,y1){
 
 $.isCollisionToNet = function(x1,y1){
 
-    var x2 = fence.getX() ;
+    var x2 = fence.getX()  ;
     var x3 = fence.getX() +10;
 
     var y2 = fence.getY() ;
-    var y3 = fence.getY() + 200;
+    //var y3 = fence.getY() + 200;
 
-    if( (y1 > y2 -25) && ((x2 <= x1+25 ) &&(x1+25 <= x2 +10)) && (speed_x > 0)){  // 네트 왼쪽 충돌
-        //debugTxt.setText("collision!  옆면");
+    var distance = x1 - (x2+5) ;
+
+    if( (( y2 <=  y1+25) && ( y1+25 <= y2+5 )) && ((x2 <= x1)&&(x1 <= x3))  ){ // 네트 위 충돌
+        speed_y = speed_y * -1;
+        $.collisionDelay();
+
+    }else if((y1 > y2 -25) && ( -30 <= distance  && distance <= 30 ) ){ //
+        //debugTxt.setText("collision!  오른쪽");
         speed_x = speed_x * -0.8;
+        $.collisionDelay();
 
-    }else if((y1 > y2 -25) &&((x3-10 <= x1-25)&& (x3 >= x1-25 )) &&(speed_x < 0) ){ // 네트 오른쪽 충돌
-        //debugTxt.setText("collision!  옆면");
-        speed_x = speed_x * -0.8;
+    }
+    /*if( (y1 > y2 -25) && ( -30 <= distance  && distance <= 30 ) && (speed_x > 0)){  // 네트 왼쪽 충돌
+     debugTxt.setText("collision!  왼쪽");
+     speed_x = speed_x * -0.8;
 
-    }else if( (( y2 <=  y1+25) && ( y1+25 <= y2+5 )) && ((x2 <= x1)&&(x1 <= x3))  ){ // 네트 위 충돌
-        speed_y = speed_y * -0.8;
+     } */
+    /*
+     if( (y1 > y2 -25) && ((x2 <= x1+25 ) &&(x1+25 <= x3 )) && (speed_x > 0)){  // 네트 왼쪽 충돌
+     debugTxt.setText("collision!  왼쪽");
+     speed_x = speed_x * -0.8;
 
-    }else{}
+     }
+     if((y1 > y2 -25) &&((x2 <= x1-25)&& (x3 >= x1-25 )) &&(speed_x < 0) ){ // 네트 오른쪽 충돌
+     debugTxt.setText("collision!  오른쪽");
+     speed_x = speed_x * -0.8;
+
+     }
+     */
+
 
 }
+$.collisionDelay = function(){
+    delayTime =(new Date()).getTime();
 
+    delay.start();
+}
 $.countDown = function(){
     if(time == 0 )
         time =(new Date()).getTime();
@@ -683,4 +795,5 @@ $.countDown = function(){
 $.gameStart = function() {
     anim.start();
 }
+
 $.Init();

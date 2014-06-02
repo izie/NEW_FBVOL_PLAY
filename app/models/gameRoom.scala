@@ -147,6 +147,37 @@ object GameRoom {
 
   }
 
+  def shoot(user:User,seq_room:Long):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+
+    (default ? ShootGame(user,seq_room)).map {
+
+      case Connected(enumerator) =>
+
+        // Create an Iteratee to consume the feed
+        val iteratee = Iteratee.foreach[JsValue] { event =>
+          default ! TalkGame(user, (event \ "text").as[String])
+        }.map { _ =>
+          default ! QuitGame(user)
+        }
+
+        (iteratee,enumerator)
+
+      case CannotConnect(error) =>
+
+        // Connection error
+
+        // A finished Iteratee sending EOF
+        val iteratee = Done[JsValue,Unit]((),Input.EOF)
+
+        // Send an error and close the socket
+        val enumerator =  Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
+
+        (iteratee,enumerator)
+
+    }
+
+  }
+
 }
 
 class GameRoom extends Actor {
@@ -163,6 +194,10 @@ class GameRoom extends Actor {
     case JumpGame(user,seq_room) => {
       //Users.setUserPosition(x,y,user.token)
       notifyAll("jump", user, "has entered the room",seq_room)
+    }
+    case ShootGame(user,seq_room) => {
+      //Users.setUserPosition(x,y,user.token)
+      notifyAll("shoot", user, "has entered the room",seq_room)
     }
     case JoinGame(user,seq_room) => {
 
@@ -245,6 +280,7 @@ class GameRoom extends Actor {
 
 }
 
+case class ShootGame(user:User,seq_room:Long)
 case class JumpGame(user:User,seq_room:Long)
 case class MoveGame(user:User,x:Int,y:Int)
 case class JoinGame(user:User,seq_room:Long)

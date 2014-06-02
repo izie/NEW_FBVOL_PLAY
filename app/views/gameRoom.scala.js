@@ -33,10 +33,21 @@ $(document ).ready(function() {
         }
 
         if(data.action == "jump"){
+
+
             @if(room.owner.token != user.token){
                 $.jumpAction(1);
             }else{
                 $.jumpAction(0);
+            }
+        }
+
+
+        if(data.action == "shoot"){
+            @if(room.owner.token != user.token){
+                $.shooting(1);
+            }else{
+                $.shooting(0);
             }
         }
 
@@ -85,6 +96,12 @@ $(document ).ready(function() {
     });
 
     $(".btn-play").click(function() {
-        $.gameStart();
+        if(ballMode == 'ready')  ballMode = 'reset';
+        else{
+            $.jumpAction(1);
+            $.jumpAction(0);
+            //$.shooting(0);
+            //$.shooting(1);
+        }
     })
 });
