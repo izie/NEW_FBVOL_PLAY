@@ -2,49 +2,92 @@
 
 <!DOCTYPE html>
 
-<html>
+<html xmlns:fb="http://ogp.me/ns/fb#">
     <head>
         <title>FACEBOOK REMOTE VOLLEY BALL</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <!-- Bootstrap -->
 
-
-        <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css">
-
         <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
         <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10-dev/js/jquery.dataTables.min.js"></script>
         <script type="text/javascript" language="javascript" src="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+
+            <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+            <!-- Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+            <!-- Latest compiled and minified JavaScript -->
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
         <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
 
         <script type="text/javascript" src="//d3lp1msu2r81bx.cloudfront.net/kjs/js/lib/kinetic-v5.1.0.min.js"></script>
 
+        <script src="//connect.facebook.net/en_US/sdk.js"></script>
+
     </head>
     <body>
         <div id="fb-root"></div>
         <script>
+
+
             var myInfo;
             var myProfile_url;
             var friendList;
 
-            @if(user == null){
+
 
             $(document ).ready(function() {
+
+            function checkLoginState() {
+            FB.getLoginStatus(function(response) {
+            $.statusChangeCallback(response);
+            });
+            }
+
+
+                @if(user == null){
                 $.ajaxSetup({ cache: true });
                 $.getScript('//connect.facebook.net/en_UK/all.js', function(){
                     FB.init({
-                        //appId      : '236220253168811',         243183015805868
-                    appId      : '243183015805868',
-                        cookie     : true,  // enable cookies to allow the server to access
-                        // the session
-                        xfbml      : true,  // parse social plugins on this page
-                        version    : 'v2.0' // use version 2.0
+                    //appId      : '236220253168811', // Original
+                    //appId      : '243183015805868', // Sangtae
+                    appId       : '241309625993207', // Matthew Test
+                        frictionlessRequests: true,
+                        status: true,
+                        version: 'v2.0'
+
                     });
 
+                    FB.Event.subscribe('auth.authResponseChange', onAuthResponseChange);
+                    FB.Event.subscribe('auth.statusChange', onStatusChange);
+
                     //$('#loginbutton,#feedbutton').removeAttr('disabled');
-                    FB.getLoginStatus( $.statusChangeCallback);
+                    //FB.getLoginStatus( $.statusChangeCallback);
                 });
+
+                function login(callback) {
+                    FB.login(callback);
+                }
+                function loginCallback(response) {
+                    console.log('loginCallback',response);
+                    if(response.status != 'connected') {
+                        top.location.href = 'https://www.facebook.com/appcenter/236220253168811';
+                    }
+                }
+                function onStatusChange(response) {
+                    if( response.status != 'connected' ) {
+                        login(loginCallback);
+                    } else {
+                        //showHome();
+                        $.statusChangeCallback(response);
+                    }
+                }
+                function onAuthResponseChange(response) {
+                    console.log('onAuthResponseChange', response);
+                }
 
             $.statusChangeCallback = function(response){
                 console.log('statusChangeCallback');
@@ -66,11 +109,12 @@
                 }
             }
 
-            function checkLoginStatus() {
-                FB.getLoginStatus(function(response) {
-                    $.statusChangeCallback(response);
-                });
+            $.checkLoginStatus = function() {
+            FB.getLoginStatus(function(response) {
+            $.statusChangeCallback(response);
+            });
             }
+
 
 
             $.addMe = function(e) {
@@ -200,13 +244,95 @@
             //$('#my_profile' ).append('<div class="span4"><img src="'+myProfile_url+'" /></div><div class="span8"><h5>'+myInfo.name+'</h5>Win : '+myInfo.win+'</div>');
 
             }
+
+            }
+
+
+            @if(user != null){
+                $.ajaxSetup({ cache: true });
+                $.getScript('//connect.facebook.net/en_UK/all.js', function(){
+                FB.init({
+                //appId      : '236220253168811', // Original
+                //appId      : '243183015805868', // Sangtae
+                appId       : '241309625993207', // Matthew Test
+                frictionlessRequests: true,
+                status: true,
+                version: 'v2.0'
+
+                });
+
+                FB.Event.subscribe('auth.authResponseChange', onAuthResponseChange);
+                FB.Event.subscribe('auth.statusChange', onStatusChange);
+
+                //$('#loginbutton,#feedbutton').removeAttr('disabled');
+                //FB.getLoginStatus( $.statusChangeCallback);
+                });
+
+                function login(callback) {
+                FB.login(callback);
+                }
+                function loginCallback(response) {
+                console.log('loginCallback',response);
+                if(response.status != 'connected') {
+                top.location.href = 'https://www.facebook.com/appcenter/236220253168811';
+                }
+                }
+                function onStatusChange(response) {
+                if( response.status != 'connected' ) {
+                login(loginCallback);
+                } else {
+                //showHome();
+                $.statusChangeCallback(response);
+                }
+                }
+                function onAuthResponseChange(response) {
+                console.log('onAuthResponseChange', response);
+                }
+
+                $.statusChangeCallback = function(response){
+                console.log('statusChangeCallback');
+                console.log(response);
+                if (response.status === 'connected') {
+
+                //drawGame();
+
+                // 1. Get My Profile
+                $("#fbBtn" ).hide();
+
+                // 2. Get Friend List
+                } else if (response.status === 'not_authorized') {
+                $('.div-msg #msg' ).html('Please login using Facebook login button.');
+                $('.div-msg' ).fadeIn();
+                } else {
+                $('.div-msg #msg' ).html('Please login using Facebook login button.');
+                $('.div-msg' ).fadeIn();
+                }
+                }
+
+
+                $.checkLoginStatus = function() {
+                FB.getLoginStatus(function(response) {
+                $.statusChangeCallback(response);
+                });
+                }
+
+
+                $.logOut = function() {
+                FB.logout(function(response) {
+                // Person is now logged out
+                location.href="/";
+                });
+                }
+
+                $("#link-logout" ).click(function() {
+                $.logOut();
+                });
+            }
             });
 
-            }
 
-            @if(user != null && room == null){
 
-            }
+
 
 
         </script>
@@ -227,12 +353,12 @@
                                     <li><a href="#" data-toggle="modal" data-target="#modal_makeroom">New Room</a></li>
                                     <li><a href="#">Setting</a></li>
                                     <li class="divider"></li>
-                                    <li><a href="#">Logout</a></li>
+                                    <li><a href="#" id="link-logout">Logout</a></li>
                                 </ul>
                             </li>
                         }
                         <li class="text-center">
-                            <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginStatus();" id="fbBtn">
+                            <fb:login-button scope="public_profile,email,user_friends,manage_friendlists" size="large" max_rows="1" onlogin="checkLoginState" id="fbBtn">
                             </fb:login-button>
                             <span class="label label-success" id="login_status_msg"></span>
                             <form action="@routes.Application.chatRoom(None)" class="pull-right" id="form1" style="display: none;">
@@ -275,12 +401,14 @@
 
             <footer>
                 <p>
-                    Copyright <a href="http://www.izectlab.com">www.izectlab.com</a> All right reserved <br/>
+                    Copyright <a href="http://www.matthewlab.com">www.matthewlab.com</a> All right reserved <br/>
                     Developed by Team NGX in CAUCSE
                 </p>
             </footer>
 
         </div>
+
+
 
             <!-- Modal -->
         <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -299,13 +427,20 @@
                         <p>Passing a ball over a net within three touches</p>
                         <p>User can give up during the game</p>
                         <p>No time limit</p>
+                        <h4>Developers</h4>
+                        <h5>Lee Sang-Tae(tkdxo0624@@naver.com)</h5>
+                        <p>Game Client, Database</p>
+                        <h5>Matthew Chang(matthew.chang@@me.com)</h5>
+                        <p>Back-end, Facebook API</p>
+                        <h5>Jo Dong-kyoung(dkjo91@@gmail.com)</h5>
+                        <p>Controller web application</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
                     </div>
                 </div>
             </div>
         </div>
+
     </body>
 </html>

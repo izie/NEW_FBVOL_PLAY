@@ -25,6 +25,10 @@ object Application extends Controller {
     Ok(views.html.controller())
   }
 
+  def privacy = Action { implicit request =>
+    Ok(views.html.privacy())
+  }
+
   /**
    * Display the chat room page.
    */

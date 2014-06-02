@@ -6,6 +6,9 @@
 GET         /                                      controllers.Application.index
 POST        /                                      controllers.Application.index
 
+GET         /Privacy                               controllers.Application.privacy
+POST         /Privacy                                      controllers.Application.privacy
+
 GET         /Controller                            controllers.Application.controller
 POST        /Controller                            controllers.Application.controller
 
@@ -17,7 +20,7 @@ POST        /User/setUserCurrentRoom               controllers.User.setUserCurre
 POST        /User/setUserStatusByToken             controllers.User.setUserStatusByToken(status:Int, token:String)
 POST        /User/setUserXY                        controllers.User.setUserXY(token:String, x:Int, y:Int)
 POST        /User/JumpUser                         controllers.User.JumpUser(token:String)
-POST        /User/ShootUser                         controllers.User.ShootUser(token:String)
+POST        /User/ShootUser                        controllers.User.ShootUser(token:String)
 
 
 
