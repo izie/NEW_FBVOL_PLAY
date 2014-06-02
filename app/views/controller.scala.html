@@ -17,7 +17,7 @@
         <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" content="en" />
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0;">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
         <title>Canvas</title>
@@ -234,64 +234,59 @@
         $("#layer-jump" ).css("height",($(window ).height() * 0.30)+"px");
         $("#layer-shoot" ).css("height",($(window ).height() * 0.30)+"px");
 
+
+
             $(window ).on("orientationchange",function() {
 
-            var orientation = window.orientation;
 
-            if (navigator.appVersion.indexOf('iPad') < 0)
-            {
+            $("#layer-touch" ).css("width",($(window ).width() * 0.60)+"px");
 
-            switch (orientation)
-            {
-            case 0:
-            showRotateNotice();
-            break;
-            case -90:
+            $("#layer-jump" ).css("width",($(window ).width() * 0.25)+"px");
+            $("#layer-shoot" ).css("width",($(window ).width() * 0.25)+"px");
 
-            hideRotateNotice();
+            $("#layer-jump" ).css("height",($(window ).height() * 0.30)+"px");
+            $("#layer-shoot" ).css("height",($(window ).height() * 0.30)+"px");
 
-            break;
-            case 90:
-
-            hideRotateNotice();
-
-            break;
-            }
-            }
-            else
-            {
-            // iPad!
-            //gameStart();
-            switch (orientation)
-            {
-            case 0:
-            document.getElementById('all').style.webkitTransform = 'scale(1.6) translateY(152px)';
-            break;
-            case 180:
-            document.getElementById('all').style.webkitTransform = 'scale(1.6) translateY(152px)';
-            break;
-            case 90:
-            document.getElementById('all').style.webkitTransform = 'scale(2) translate(16px, 22px)';
-            break;
-            case -90:
-            document.getElementById('all').style.webkitTransform = 'scale(2) translate(16px, 22px)';
-            break;
-            }
-            }
-
+            $.checkRotate();
 
             });
+
+        $.checkRotate = function() {
+        var orientation = window.orientation;
+        //alert(orientation);
+
+        switch (orientation)
+        {
+        case 0:
+        showRotateNotice();
+        break;
+        case -90:
+
+        hideRotateNotice();
+
+        break;
+        case 90:
+
+        hideRotateNotice();
+
+        break;
+        }
+        }
 
 
         function showRotateNotice()
         {
-            $("#popupDialog" ).fadeIn();
+            $("#main_controller" ).fadeOut();
+            $("#main_msg" ).fadeIn();
         }
 
         function hideRotateNotice()
         {
-            $("#popupDialog" ).fadeOut();
+            $("#main_msg" ).fadeOut();
+        $("#main_controller" ).fadeIn();
         }
+
+        $.checkRotate();
 
         });
 
@@ -327,15 +322,15 @@
             <div data-role="header">
                 <h1>NGX Controller</h1>
             </div><!-- /header -->
-
             <div role="main" class="ui-content">
-                <div class="ui-grid-b">
+                <div class="ui-grid-b"  id="main_controller">
                     <div class="ui-block-a" id="layer-touch"   style="height:60%" style="width:49.95%;"><canvas   style="height:80%" class="ui-block-a" id="btn-touch">Touch</canvas></div>
                     <div class="ui-block-b" id="layer-jump" ><div style="height:100%"    class="ui-bar ui-bar-a" id="btn-jump">Jump</div></div>
                     <div class="ui-block-c" id="layer-shoot" ><div  style="height:100%"   class="ui-bar ui-bar-a" id="btn-shoot">Shoot</div></div>
                 </div><!-- /grid-b -->
 
-                <div id="temp_msg">
+                <div id="main_msg" style="display: none;">
+                    <h1>please rotate your controller!!</h1>
                 </div>
             </div><!-- /content -->
 
@@ -343,15 +338,6 @@
                 <h4>Copyright <a href="http://www.matthewlab.com">www.matthewlab.com</a><br/>
                     Developed by Team NGX in CAUCSE</h4>
             </div><!-- /footer -->
-            <div data-role="popup" id="popupDialog" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="max-width:400px;">
-                <div data-role="header" data-theme="a">
-                    <h1>Warning!</h1>
-                </div>
-                <div role="main" class="ui-content">
-                    <h3 class="ui-title">Rotate your phone from horizontal to landscape!!</h3>
-                    <p>NGX Controller will be run well just landscape mode!</p>
-                </div>
-            </div>
         </div><!-- /page -->
 
     </body>
