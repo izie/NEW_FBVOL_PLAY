@@ -668,11 +668,14 @@ $.initAnim = function(){
             $.countDown();
         }
         else if( ballMode =='ready' ){
-            kimages[0].setX(100);
-            kimages[0].setY(500);
-
-            kimages[1].setX(610);
-            kimages[1].setY(500);
+            if(kimages[0] != null){
+                kimages[0].setX(100);
+                kimages[0].setY(500);
+            }
+            if(kimages[1] != null){
+                kimages[1].setX(610);
+                kimages[1].setY(500);
+            }
 
             ball.setX(150);
             ball.setY(70);

@@ -19,36 +19,38 @@ $(document ).ready(function() {
 
         if(data.action == "join"){
             $.addUser(data);
-            @if(room.owner.token != user.token){
-                $.addOwner("@room.owner.token","@room.owner.name","@room.owner.pic_url");
-            }
+
+        }
+
+        if(data.action == "addOwner") {
+            $.addOwner("@room.owner.token","@room.owner.name","@room.owner.pic_url");
         }
 
         if(data.action == "move"){
-            @if(room.owner.token != user.token){
-                $.setUserXY(1,data.token, data.x, data.y);
-            }else{
-                $.setUserXY(0,data.token, data.x, data.y);
-            }
+            if("@room.owner.token" == data.token)   $.setUserXY(0,data.token, data.x, data.y);
+            else                                    $.setUserXY(1,data.token, data.x, data.y);
+
         }
 
         if(data.action == "jump"){
 
+            if("@room.owner.token" == data.token)   $.jumpAction(0);
+            else                                    $.jumpAction(1);
 
-            @if(room.owner.token != user.token){
-                $.jumpAction(1);
-            }else{
-                $.jumpAction(0);
-            }
         }
 
 
         if(data.action == "shoot"){
-            @if(room.owner.token != user.token){
-                $.shooting(1);
-            }else{
-                $.shooting(0);
+            if("@room.owner.token" == data.token)   $.shooting(0);
+            else                                    $.shooting(1);
+
+        }
+
+        if(data.action == "ready"){
+            if("@room.owner.token" != data.token){
+
             }
+
         }
 
         /*
