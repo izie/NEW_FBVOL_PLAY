@@ -139,7 +139,7 @@ object Rooms{
         ).as(Users.simple *)
   }
 
-  def getViewersInRoom(seq_room:Int):Seq[User] = DB.withConnection {
+  def getViewersInRoom(seq_room:Long):Seq[User] = DB.withConnection {
     println("=== Rooms - getUsers()")
     implicit connection =>
       SQL(
@@ -205,13 +205,13 @@ object Rooms{
       Users.setUserCurrentRoom(token, seq_room)
   }
 
-  def removeRoom(seq_room:Int) = DB.withConnection {
+  def removeRoom(seq_room:Long) = DB.withConnection {
 
     implicit connection =>
       println("=== Rooms - setUserOutAsOwner()")
       SQL(
         """
-            delete
+            delete from
               roominfo
             where
               seq = {seq}

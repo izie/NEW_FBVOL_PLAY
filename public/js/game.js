@@ -302,9 +302,9 @@ $.addOwner = function(id,name,pic_url) {
     images[user_type].src = pic_url;
 }
 
-$.addUser = function(user) {
+$.addUser = function(user_type,user) {
     numUser++;
-    var user_type = user.user_type;
+    //var user_type = user.user_type;
     var user_x,user_y=500;
 
     //110 500 610 500

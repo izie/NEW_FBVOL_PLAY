@@ -18,11 +18,15 @@ $(document ).ready(function() {
         console.log(data);
 
         if(data.action == "join"){
-            $.addUser(data);
+            if("@room.owner.token" == data.token)   $.addUser(0,data);
+            else                                    $.addUser(1,data);
+
+            //$.addUser(data);
 
         }
 
         if(data.action == "addOwner") {
+            if("@room.owner.token" != "@user.token")
             $.addOwner("@room.owner.token","@room.owner.name","@room.owner.pic_url");
         }
 
@@ -47,10 +51,20 @@ $(document ).ready(function() {
         }
 
         if(data.action == "ready"){
-            if("@room.owner.token" != data.token){
-
+            if("@room.owner.token" == "@user.token"){
+                $(".btn-play").removeClass("disabled");
             }
 
+        }
+
+        if(data.action == "quit"){
+            alert(data.name+" is quit!\nGame will exit");
+            //alert($("#form2[id=token]")).val();
+            $("#form2").submit();
+        }
+
+        if(data.action == "play"){
+            ballMode = 'reset';
         }
 
         /*
@@ -91,19 +105,34 @@ $(document ).ready(function() {
 
         gameSocket.send(JSON.stringify(
             {
-                code: "removeRoom",
-                seq_room:@room.seq
+                seq_room: @room.seq
             }
         ))
     });
 
     $(".btn-play").click(function() {
-        if(ballMode == 'ready')  ballMode = 'reset';
+        gameSocket.send(JSON.stringify(
+            {
+                seq_play_room: @room.seq,
+                play:1
+            }
+        ))
+        /*if(ballMode == 'ready')  ballMode = 'reset';
         else{
             $.jumpAction(1);
             $.jumpAction(0);
             //$.shooting(0);
             //$.shooting(1);
-        }
-    })
+        }*/
+    });
+
+    $(".btn-ready").click(function() {
+        gameSocket.send(JSON.stringify(
+            {
+                seq_ready_room: @room.seq,
+                ready:1
+            }
+        ))
+    });
+
 });

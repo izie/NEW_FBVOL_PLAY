@@ -62,9 +62,28 @@ object GameRoom {
 
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
-          default ! TalkGame(user, (event \ "text").as[String])
-        }.map { _ =>
-          default ! QuitGame(user)
+
+          //println("event : "+event + "ㅁㅁ : "+event.toString().indexOf("ready"))
+          if(event.toString().indexOf("seq_ready_room") != -1){
+            default ! ReadyGame(user, (event \ "seq_ready_room").as[Long],(event \ "ready").as[Long])
+          }else if(event.toString().indexOf("seq_play_room") != -1){
+            default ! PlayGame(user, (event \ "seq_play_room").as[Long],(event \ "play").as[Long])
+          }else if(event.toString().indexOf("seq_room") != -1){
+          default ! QuitGame(user, (event \ "seq_room").as[Long])
+        }
+
+
+
+
+
+
+
+        }.map{_ =>
+          default ! QuitGame(user, seq_room)
+
+        }.mapDone { _ =>
+          //default ! ReadyGame(user,seq_ready_room,ready)
+          //default ! ReadyGame(user,(ev  ent \ "seq_room").as[Long])
         }
 
         (iteratee,enumerator)
@@ -85,9 +104,9 @@ object GameRoom {
 
   }
 
-  def ready(user:User, seq_room:Long):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+  def quit(user:User, seq_room:Long):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
 
-    (default ? ReadyGame(user,seq_room)).map {
+    (default ? QuitGame(user,seq_room)).map {
 
       case Connected(enumerator) =>
 
@@ -95,7 +114,7 @@ object GameRoom {
         val iteratee = Iteratee.foreach[JsValue] { event =>
           default ! TalkGame(user, (event \ "text").as[String])
         }.map { _ =>
-          default ! QuitGame(user)
+          //default ! QuitGame(user)
         }
 
         (iteratee,enumerator)
@@ -115,6 +134,7 @@ object GameRoom {
     }
 
   }
+
 
   def move(user:User, x:Int, y:Int):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
 
@@ -126,7 +146,7 @@ object GameRoom {
         val iteratee = Iteratee.foreach[JsValue] { event =>
           default ! TalkGame(user, (event \ "text").as[String])
         }.map { _ =>
-          default ! QuitGame(user)
+          //default ! QuitGame(user)
         }
 
         (iteratee,enumerator)
@@ -157,7 +177,7 @@ object GameRoom {
         val iteratee = Iteratee.foreach[JsValue] { event =>
           default ! TalkGame(user, (event \ "text").as[String])
         }.map { _ =>
-          default ! QuitGame(user)
+          //default ! QuitGame(user)
         }
 
         (iteratee,enumerator)
@@ -188,7 +208,7 @@ object GameRoom {
         val iteratee = Iteratee.foreach[JsValue] { event =>
           default ! TalkGame(user, (event \ "text").as[String])
         }.map { _ =>
-          default ! QuitGame(user)
+          //default ! QuitGame(user)
         }
 
         (iteratee,enumerator)
@@ -230,12 +250,18 @@ class GameRoom extends Actor {
       //Users.setUserPosition(x,y,user.token)
       notifyAll("shoot", user, "has entered the room",seq_room)
     }
-    case ReadyGame(user,seq_room) => {
+    case ReadyGame(user,seq_room,ready) => {
       //Users.setUserPosition(x,y,user.token)
+      println("readygame")
       notifyAll("ready", user, "has entered the room",seq_room)
     }
+    case PlayGame(user,seq_room,play) => {
+      //Users.setUserPosition(x,y,user.token)
+      println("playgame")
+      notifyAll("play", user, "has entered the room",seq_room)
+    }
     case JoinGame(user,seq_room) => {
-
+      println("JOINGAME")
       if(members.contains(user)) {
         sender ! CannotConnect("This username is already used")
       } else {
@@ -262,20 +288,18 @@ class GameRoom extends Actor {
       notifyAll("talk", token, text)
     }
 
-    case QuitGame(user) => {
+    case QuitGame(user,seq_room) => {
       members = members - user
-      notifyAll("quit", user, "has left the room")
+
+      Rooms.removeRoom(seq_room)
+      notifyAll("quit", user, "has left the room",seq_room)
     }
 
   }
 
   def notifyAll(action:String, user:User, msg:String, seq_room:Long=0) {
     //val user:User = Users.getUserByToken(token)
-    val room:Room = Rooms.getRoom(seq_room)
-    println(user.token + "//" + room.owner.token)
-    var user_type:Int = 3
-    if(room.owner.token == user.token)  user_type = 0
-    else                                user_type = 1
+
 
     val msg2 = JsObject(
       Seq(
@@ -290,8 +314,7 @@ class GameRoom extends Actor {
         "lose" -> JsNumber(user.lose),
         "total" -> JsNumber(user.total),
         "x" -> JsNumber(user.location_x),
-        "y" -> JsNumber(user.location_y),
-        "user_type" -> JsNumber(user_type)
+        "y" -> JsNumber(user.location_y)
       )
     )
     gameChannel.push(msg2)
@@ -323,13 +346,13 @@ class GameRoom extends Actor {
 
 }
 
-case class PlayGame(user:User, seq_room:Long)
-case class ReadyGame(user:User, seq_room:Long)
+case class PlayGame(user:User, seq_room:Long, ready:Long)
+case class ReadyGame(user:User, seq_room:Long,ready:Long)
 case class ShootGame(user:User,seq_room:Long)
 case class JumpGame(user:User,seq_room:Long)
 case class MoveGame(user:User,x:Int,y:Int)
 case class JoinGame(user:User,seq_room:Long)
-case class QuitGame(user: User)
+case class QuitGame(user: User, seq_room:Long)
 case class TalkGame(user: User, text: String)
 case class NotifyJoinGame(user: User, seq_room:Long)
 case class NotifyRoomOwner(user: User, room:Room)

@@ -50,10 +50,10 @@
 }
 </div>
 <div class="col-md-12 text-center">
-<button type="button" class="btn btn-info btn-lg btn-play">
+
     @if(user1.token == token){
-        Play
+        <button type="button" class="btn btn-info btn-lg btn-play disabled">Play</button>
     }else{
-        Ready
+        <button type="button" class="btn btn-warning btn-lg btn-ready">Ready</button>
     }
-</button>
+
